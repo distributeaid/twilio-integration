@@ -1,12 +1,12 @@
 import { Construct, RemovalPolicy, Stack, Duration } from '@aws-cdk/core'
-import {
-	PolicyStatement,
-	Role,
-	ServicePrincipal,
-} from '@aws-cdk/aws-iam'
+import { PolicyStatement, Role, ServicePrincipal } from '@aws-cdk/aws-iam'
 import { Code, Function, ILayerVersion, Runtime } from '@aws-cdk/aws-lambda'
 import { LogGroup, RetentionDays } from '@aws-cdk/aws-logs'
-import { CfnGraphQLApi, CfnGraphQLSchema, CfnApiKey } from '@aws-cdk/aws-appsync'
+import {
+	CfnGraphQLApi,
+	CfnGraphQLSchema,
+	CfnApiKey,
+} from '@aws-cdk/aws-appsync'
 import { readFileSync } from 'fs'
 import * as path from 'path'
 import { GQLLambdaResolver } from '../resources/GQLLambdaResolver'
@@ -16,6 +16,7 @@ const gqlLambda = (
 	stack: Stack,
 	baseLayer: ILayerVersion,
 	api: CfnGraphQLApi,
+	schema: CfnGraphQLSchema,
 	field: string,
 	type: 'Query' | 'Mutation',
 	lambda: Code,
@@ -23,7 +24,7 @@ const gqlLambda = (
 	environment?: {
 		[key: string]: any
 	},
-) => {
+): Function => {
 	const f = new Function(parent, `${field}${type}`, {
 		handler: 'index.handler',
 		runtime: Runtime.NODEJS_10_X,
@@ -53,7 +54,9 @@ const gqlLambda = (
 		retention: RetentionDays.ONE_WEEK,
 	})
 
-	new GQLLambdaResolver(parent, api, field, type, f)
+	new GQLLambdaResolver(parent, api, field, type, f).node.addDependency(schema)
+
+	return f
 }
 
 export class ApiFeature extends Construct {
@@ -101,17 +104,10 @@ export class ApiFeature extends Construct {
 			retention: RetentionDays.ONE_WEEK,
 		})
 
-		new CfnGraphQLSchema(this, 'Schema', {
+		const schema = new CfnGraphQLSchema(this, 'Schema', {
 			apiId: this.api.attrApiId,
 			definition: readFileSync(
-				path.resolve(
-					__dirname,
-					'..',
-					'..',
-					'..',
-					'appsync',
-					'schema.graphql',
-				),
+				path.resolve(__dirname, '..', '..', '..', 'appsync', 'schema.graphql'),
 				'utf-8',
 			),
 		})
@@ -121,7 +117,8 @@ export class ApiFeature extends Construct {
 			stack,
 			baseLayer,
 			this.api,
-			'createAccount',
+			schema,
+			'createChatToken',
 			'Mutation',
 			lambdas.createChatTokenMutation,
 			[
@@ -138,7 +135,7 @@ export class ApiFeature extends Construct {
 		this.apiKey = new CfnApiKey(this, `apiKey${year}`, {
 			apiId: this.api.attrApiId,
 			description: `API key for ${year}`,
-			expires: 365
+			expires: Math.floor(Date.now() / 1000) + 365 * 24 * 60 * 60,
 		})
 	}
 }

@@ -61,6 +61,6 @@ export class GQLLambdaResolver extends Construct {
 				'#else\n' +
 				'  $utils.toJson($context.result)\n' +
 				'#end',
-		})
+		}).node.addDependency(dataSource)
 	}
 }

@@ -8,9 +8,14 @@ input ToolboxTokenInput {
 }
 
 type Mutation {
-    createChatToken(toolboxToken: ToolboxTokenInput!, deviceId: ID!): ChatToken!
+    createChatToken(deviceId: ID!, toolboxToken: ToolboxTokenInput): ChatToken!
+}
+
+type Query {
+    _: Boolean
 }
 
 type Schema {
+    query: Query
     mutation: Mutation
 }

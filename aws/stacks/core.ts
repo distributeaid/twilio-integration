@@ -5,7 +5,6 @@ import { TwilioIntegrationLayeredLambdas } from '../resources/lambdas'
 import { ApiFeature } from '../features/api'
 
 export class CoreStack extends Stack {
-
 	constructor(
 		parent: App,
 		id: string,
@@ -41,6 +40,11 @@ export class CoreStack extends Stack {
 		new CfnOutput(this, 'apiUrl', {
 			value: api.api.attrGraphQlUrl,
 			exportName: `${this.stackName}:apiUrl`,
+		})
+
+		new CfnOutput(this, 'apiKey', {
+			value: api.apiKey.attrApiKey,
+			exportName: `${this.stackName}:apiKey`,
 		})
 	}
 }
