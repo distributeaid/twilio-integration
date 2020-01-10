@@ -20,7 +20,8 @@ The Twilio API credentials need to be provided:
     aws ssm put-parameter --name /twilio/apiSecret --type SecretString --value <API Secret>
     aws ssm put-parameter --name /twilio/accountSID --type String --value <Account SID>
     aws ssm put-parameter --name /twilio/chatServiceSID --type String --value <Chat Service SID>
-    
+    aws ssm put-parameter --name /twilio/restApiKey --type SecretString --value <REST API Key>
+
 If this is the run the first time in an account
 
     npx cdk -a 'node dist/aws/cloudformation-sourcecode.js' deploy

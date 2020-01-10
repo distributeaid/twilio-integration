@@ -8,7 +8,7 @@ input ToolboxTokenInput {
 }
 
 type Mutation {
-    createChatToken(deviceId: ID!, toolboxToken: ToolboxTokenInput): ChatToken!
+    createChatToken(deviceId: ID!, identity: ID!, toolboxToken: ToolboxTokenInput): ChatToken!
 }
 
 type Query {
