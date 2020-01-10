@@ -1,0 +1,16 @@
+type ChatToken {
+    identity: ID!
+    jwt: ID!
+}
+
+input ToolboxTokenInput {
+    jwt: ID!
+}
+
+type Mutation {
+    createChatToken(toolboxToken: ToolboxTokenInput!, deviceId: ID!): ChatToken!
+}
+
+type Schema {
+    mutation: Mutation
+}
