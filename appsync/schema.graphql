@@ -1,21 +1,17 @@
-type ChatToken {
-    identity: ID!
-    jwt: ID!
-}
-
-input ToolboxTokenInput {
-    jwt: ID!
-}
-
 type Mutation {
-    createChatToken(deviceId: ID!, identity: ID!, toolboxToken: ToolboxTokenInput): ChatToken!
+    createChatToken(deviceId: ID!, token: ID!): ID!
 }
 
 type Query {
-    _: Boolean
+    verifyToken(token: ID!): TokenInfo!
 }
 
 type Schema {
     query: Query
     mutation: Mutation
+}
+
+type TokenInfo {
+    identity: ID!
+    contexts: [String!]!
 }

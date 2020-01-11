@@ -1,7 +1,7 @@
 import { Context } from 'aws-lambda'
 
 export type ErrorInfo = {
-	type: 'EntityNotFound'
+	type: 'EntityNotFound' | 'BadRequest' | 'AccessDenied' | 'InternalError'
 	message: string
 }
 
@@ -13,7 +13,7 @@ export const GQLError = (context: Context, error: ErrorInfo) => {
 	console.error(
 		JSON.stringify({
 			context,
-			error
+			error,
 		}),
 	)
 	return {

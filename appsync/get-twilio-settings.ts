@@ -1,11 +1,7 @@
 import { SSM } from 'aws-sdk'
 import { ErrorInfo } from './GQLError'
 import { Either, left, right } from 'fp-ts/lib/Either'
-
-const findParameterByName = (Path: string, Parameters?: SSM.ParameterList) => (
-	name: string,
-): string | undefined =>
-	Parameters?.find(({ Name }) => Name?.replace(`${Path}/`, '') === name)?.Value
+import { getSettings } from './get-settings'
 
 export type TwilioSettings = {
 	apiKey: string
@@ -18,16 +14,7 @@ export type TwilioSettings = {
 export const getTwilioSettings = ({ ssm }: { ssm: SSM }) => async (): Promise<
 	Either<ErrorInfo, TwilioSettings>
 > => {
-	const Path = `/twilio`
-	const { Parameters } = await ssm
-		.getParametersByPath({
-			Path,
-			Recursive: true,
-			WithDecryption: true,
-		})
-		.promise()
-
-	const f = findParameterByName(Path, Parameters)
+	const f = await getSettings({ ssm, scope: 'twilio' })
 
 	const apiKey = f('apiKey')
 	const apiSecret = f('apiSecret')

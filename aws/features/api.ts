@@ -68,6 +68,7 @@ export class ApiFeature extends Construct {
 		id: string,
 		lambdas: {
 			createChatTokenMutation: Code
+			verifyTokenQuery: Code
 		},
 		baseLayer: ILayerVersion,
 	) {
@@ -126,6 +127,26 @@ export class ApiFeature extends Construct {
 					actions: ['ssm:GetParametersByPath'],
 					resources: [
 						`arn:aws:ssm:${stack.region}:${stack.account}:parameter/twilio`,
+						`arn:aws:ssm:${stack.region}:${stack.account}:parameter/chat`,
+					],
+				}),
+			],
+		)
+
+		gqlLambda(
+			this,
+			stack,
+			baseLayer,
+			this.api,
+			schema,
+			'verifyToken',
+			'Query',
+			lambdas.verifyTokenQuery,
+			[
+				new PolicyStatement({
+					actions: ['ssm:GetParametersByPath'],
+					resources: [
+						`arn:aws:ssm:${stack.region}:${stack.account}:parameter/chat`,
 					],
 				}),
 			],

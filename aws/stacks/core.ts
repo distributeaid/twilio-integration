@@ -33,6 +33,10 @@ export class CoreStack extends Stack {
 					sourceCodeBucket,
 					layeredLambdas.lambdaZipFileNames.createChatTokenMutation,
 				),
+				verifyTokenQuery: Code.bucket(
+					sourceCodeBucket,
+					layeredLambdas.lambdaZipFileNames.verifyTokenQuery,
+				),
 			},
 			baseLayer,
 		)
