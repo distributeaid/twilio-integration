@@ -1,10 +1,12 @@
 import { App, CfnOutput, Stack } from '@aws-cdk/core'
 import { Code, LayerVersion, Runtime } from '@aws-cdk/aws-lambda'
 import { Bucket } from '@aws-cdk/aws-s3'
+import * as SNS from '@aws-cdk/aws-sns'
 import { TwilioIntegrationLayeredLambdas } from '../resources/lambdas'
 import { ApiFeature } from '../features/api'
 
 export class CoreStack extends Stack {
+	public readonly eventsTopic: SNS.ITopic
 	constructor(
 		parent: App,
 		id: string,
@@ -25,6 +27,10 @@ export class CoreStack extends Stack {
 			compatibleRuntimes: [Runtime.NODEJS_10_X],
 		})
 
+		this.eventsTopic = new SNS.Topic(this, 'eventsTopic', {
+			displayName: `${id}-eventsTopic`,
+		})
+
 		const api = new ApiFeature(
 			this,
 			'api',
@@ -39,6 +45,7 @@ export class CoreStack extends Stack {
 				),
 			},
 			baseLayer,
+			this.eventsTopic,
 		)
 
 		new CfnOutput(this, 'apiUrl', {

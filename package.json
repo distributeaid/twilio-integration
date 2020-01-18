@@ -26,6 +26,7 @@
     "@aws-cdk/aws-appsync": "^1.21.1",
     "@aws-cdk/aws-dynamodb": "^1.21.1",
     "@aws-cdk/aws-iam": "^1.21.1",
+    "@aws-cdk/aws-sns": "^1.21.1",
     "@aws-cdk/core": "^1.21.1",
     "@bifravst/code-style": "^6.0.1",
     "@bifravst/package-layered-lambdas": "^3.0.1",

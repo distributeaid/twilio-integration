@@ -1,10 +1,12 @@
 import { Context } from 'aws-lambda'
 import { jwt } from 'twilio'
 import { getTwilioSettings, TwilioSettings } from '../get-twilio-settings'
-import { SSM } from 'aws-sdk'
+import { SSM, SNS } from 'aws-sdk'
 import { ErrorInfo, GQLError } from '../GQLError'
 import { Either, isLeft } from 'fp-ts/lib/Either'
 import { verifyToken } from '../verifyToken'
+import { ChatTokenCreatedEvent } from '../events'
+import { publishEvent } from '../publishEvent'
 
 const fetchSettings = getTwilioSettings({
 	ssm: new SSM({ region: process.env.AWS_REGION }),
@@ -12,6 +14,10 @@ const fetchSettings = getTwilioSettings({
 let twilioSettings: Promise<Either<ErrorInfo, TwilioSettings>>
 const verify = verifyToken({
 	ssm: new SSM({ region: process.env.AWS_REGION }),
+})
+const pe = publishEvent({
+	sns: new SNS({ region: process.env.AWS_REGION }),
+	topicArn: process.env.SNS_EVENTS_TOPIC || '',
 })
 
 export const handler = async (
@@ -32,7 +38,7 @@ export const handler = async (
 	if (isLeft(maybeSettings)) return GQLError(context, maybeSettings.left)
 
 	const { deviceId } = event
-	const { identity } = maybeValidToken.right
+	const { identity, contexts } = maybeValidToken.right
 	const { apiKey, apiSecret, accountSID, chatServiceSID } = maybeSettings.right
 
 	const endpointId = `dachat:${identity}:${deviceId}`
@@ -45,6 +51,17 @@ export const handler = async (
 			endpointId: endpointId,
 		}),
 	)
+
+	// Publish event
+	const r = await pe(
+		ChatTokenCreatedEvent({
+			identity,
+			contexts,
+		}),
+	)
+	if (isLeft(r)) {
+		console.error(`Failed to publish event: ${r.left.message}`)
+	}
 
 	return token.toJwt()
 }

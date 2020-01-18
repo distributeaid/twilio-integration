@@ -2,6 +2,7 @@ import { Construct, RemovalPolicy, Stack, Duration } from '@aws-cdk/core'
 import { PolicyStatement, Role, ServicePrincipal } from '@aws-cdk/aws-iam'
 import { Code, Function, ILayerVersion, Runtime } from '@aws-cdk/aws-lambda'
 import { LogGroup, RetentionDays } from '@aws-cdk/aws-logs'
+import * as SNS from '@aws-cdk/aws-sns'
 import {
 	CfnGraphQLApi,
 	CfnGraphQLSchema,
@@ -71,6 +72,7 @@ export class ApiFeature extends Construct {
 			verifyTokenQuery: Code
 		},
 		baseLayer: ILayerVersion,
+		eventsTopic: SNS.ITopic,
 	) {
 		super(stack, id)
 
@@ -130,7 +132,14 @@ export class ApiFeature extends Construct {
 						`arn:aws:ssm:${stack.region}:${stack.account}:parameter/chat`,
 					],
 				}),
+				new PolicyStatement({
+					actions: ['sns:Publish'],
+					resources: [eventsTopic.topicArn],
+				}),
 			],
+			{
+				SNS_EVENTS_TOPIC: eventsTopic.topicArn,
+			},
 		)
 
 		gqlLambda(

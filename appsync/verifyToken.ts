@@ -19,7 +19,7 @@ const jwks: {
 	[key: string]: Promise<Either<ErrorInfo, JWKS>>
 } = {}
 
-export type TokenInfo = { identity: string; contexts: string }
+export type TokenInfo = { identity: string; contexts: string[] }
 
 const fetchJWKS = async (url: string) =>
 	tryCatch<ErrorInfo, JWKS>(
