@@ -44,8 +44,9 @@ Create an ID for the key:
     export KEY_ID=`uuidgen`
 
 Create a private key (this should only be stored on a trusted system, e.g. the
-toolbox):  
- openssl ecparam -genkey -name secp256r1 -noout -out ecdsa-p256-\${KEY_ID}-private.pem
+toolbox):
+
+    openssl ecparam -genkey -name secp256r1 -noout -out ecdsa-p256-${KEY_ID}-private.pem
 
 Create the public key:
 
