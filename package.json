@@ -23,26 +23,26 @@
   },
   "homepage": "https://github.com/distributeaid/twilio-integration#readme",
   "devDependencies": {
-    "@aws-cdk/aws-appsync": "^1.18.0",
-    "@aws-cdk/aws-dynamodb": "^1.18.0",
-    "@aws-cdk/aws-iam": "^1.18.0",
-    "@aws-cdk/core": "^1.18.0",
+    "@aws-cdk/aws-appsync": "^1.21.1",
+    "@aws-cdk/aws-dynamodb": "^1.21.1",
+    "@aws-cdk/aws-iam": "^1.21.1",
+    "@aws-cdk/core": "^1.21.1",
     "@bifravst/code-style": "^6.0.1",
     "@bifravst/package-layered-lambdas": "^3.0.1",
     "@types/aws-lambda": "^8.10.37",
     "@types/chalk": "^2.2.0",
-    "@types/jest": "^24.0.23",
-    "@types/jsonwebtoken": "^8.3.5",
+    "@types/jest": "^24.9.0",
+    "@types/jsonwebtoken": "^8.3.6",
     "@types/node-fetch": "^2.5.4",
     "@types/uuid": "^3.4.6",
-    "aws-cdk": "^1.18.0",
+    "aws-cdk": "^1.21.1",
     "chalk": "^3.0.0",
-    "husky": "^4.0.6",
+    "husky": "^4.0.10",
     "jest": "^24.9.0",
     "prettier": "^1.19.1",
     "ts-jest": "^24.2.0",
     "ts-loader": "^6.2.1",
-    "typescript": "^3.7.3"
+    "typescript": "^3.7.5"
   },
   "husky": {
     "hooks": {
@@ -62,12 +62,12 @@
   },
   "dependencies": {
     "@aws-sdk/client-dynamodb-v2-node": "0.1.0-preview.2",
-    "fp-ts": "^2.2.0",
-    "io-ts": "^2.0.1",
+    "fp-ts": "^2.4.1",
+    "io-ts": "^2.0.5",
     "jsonwebtoken": "^8.5.1",
     "node-fetch": "^2.6.0",
     "twilio": "^3.39.2",
-    "uuid": "^3.3.3"
+    "uuid": "^3.4.0"
   },
   "jest": {
     "testURL": "http://localhost",
