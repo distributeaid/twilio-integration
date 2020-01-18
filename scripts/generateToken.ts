@@ -10,7 +10,7 @@ const privateKey = fs.readFileSync(
 	path.join(process.cwd(), `ecdsa-p256-${keyid}-private.pem`),
 	'utf-8',
 )
-const opts = {
+const opts: jwt.SignOptions = {
 	algorithm: 'ES256',
 	expiresIn: 24 * 60 * 60,
 	subject: identity,
@@ -62,7 +62,7 @@ console.log(
 )
 console.log('')
 
-jwt.verify(token, cert, err => {
+jwt.verify(token, cert, (err: jwt.VerifyErrors) => {
 	if (err) {
 		console.error(chalk.red(err))
 		process.exit(1)
