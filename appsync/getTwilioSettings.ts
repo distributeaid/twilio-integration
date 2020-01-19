@@ -1,7 +1,7 @@
 import { SSM } from 'aws-sdk'
-import { ErrorInfo } from './GQLError'
+import { ErrorInfo, ErrorType } from './GQLError'
 import { Either, left, right } from 'fp-ts/lib/Either'
-import { getSettings } from './get-settings'
+import { getSettings } from './getSettings'
 
 export type TwilioSettings = {
 	apiKey: string
@@ -24,7 +24,7 @@ export const getTwilioSettings = ({ ssm }: { ssm: SSM }) => async (): Promise<
 
 	if (!apiKey || !apiSecret || !accountSID || !chatServiceSID || !restApiKey) {
 		return left({
-			type: 'EntityNotFound',
+			type: ErrorType.EntityNotFound,
 			message: 'Twilio configuration not available!',
 		})
 	}

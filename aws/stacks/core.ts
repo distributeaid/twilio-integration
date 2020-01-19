@@ -4,6 +4,7 @@ import { Bucket } from '@aws-cdk/aws-s3'
 import * as SNS from '@aws-cdk/aws-sns'
 import { TwilioIntegrationLayeredLambdas } from '../resources/lambdas'
 import { ApiFeature } from '../features/api'
+import { IntegrationFeature } from '../features/integration'
 
 export class CoreStack extends Stack {
 	public readonly eventsTopic: SNS.ITopic
@@ -57,5 +58,18 @@ export class CoreStack extends Stack {
 			value: api.apiKey.attrApiKey,
 			exportName: `${this.stackName}:apiKey`,
 		})
+
+		new IntegrationFeature(
+			this,
+			'integration',
+			{
+				setUpUserChannelsLambda: Code.bucket(
+					sourceCodeBucket,
+					layeredLambdas.lambdaZipFileNames.setUpUserChannels,
+				),
+			},
+			baseLayer,
+			this.eventsTopic,
+		)
 	}
 }

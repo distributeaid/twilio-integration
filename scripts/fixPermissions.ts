@@ -1,6 +1,6 @@
 import { SSM } from 'aws-sdk'
-import { getTwilioSettings } from '../appsync/get-twilio-settings'
-import * as Twilio from 'twilio'
+import { getTwilioSettings } from '../appsync/getTwilioSettings'
+import { Twilio } from 'twilio'
 import { isLeft } from 'fp-ts/lib/Either'
 import * as chalk from 'chalk'
 import { RoleInstance } from 'twilio/lib/rest/chat/v1/service/role'
@@ -9,7 +9,7 @@ const listRoles = ({
 	client,
 	chatServiceSID,
 }: {
-	client: Twilio.Twilio
+	client: Twilio
 	chatServiceSID: string
 }) => async () => client.chat.services(chatServiceSID).roles.list()
 
@@ -17,7 +17,7 @@ const createServiceRole = ({
 	client,
 	chatServiceSID,
 }: {
-	client: Twilio.Twilio
+	client: Twilio
 	chatServiceSID: string
 }) => async ({
 	friendlyName,
@@ -36,7 +36,7 @@ const listUsers = ({
 	client,
 	chatServiceSID,
 }: {
-	client: Twilio.Twilio
+	client: Twilio
 	chatServiceSID: string
 }) => async () => client.chat.services(chatServiceSID).users.list()
 
@@ -47,7 +47,7 @@ getTwilioSettings({ ssm: new SSM({ region: process.env.AWS_REGION }) })()
 			process.exit(1)
 		}
 		const cfg = maybeCfg.right
-		const client = Twilio(cfg.accountSID, cfg.restApiKey)
+		const client = new Twilio(cfg.accountSID, cfg.restApiKey)
 		const r = listRoles({ client, chatServiceSID: cfg.chatServiceSID })
 		const c = createServiceRole({ client, chatServiceSID: cfg.chatServiceSID })
 		const u = listUsers({ client, chatServiceSID: cfg.chatServiceSID })

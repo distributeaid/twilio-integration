@@ -2,8 +2,8 @@ import { SSM } from 'aws-sdk'
 import { Either, isLeft, right, left } from 'fp-ts/lib/Either'
 import fetch from 'node-fetch'
 import * as jwt from 'jsonwebtoken'
-import { ErrorInfo } from './GQLError'
-import { getChatSettings } from './get-chat-settings'
+import { ErrorInfo, ToErrorInfo, ErrorType } from './GQLError'
+import { getChatSettings } from './getChatSettings'
 import { tryCatch } from 'fp-ts/lib/TaskEither'
 
 type JWKS = {
@@ -24,10 +24,7 @@ export type TokenInfo = { identity: string; contexts: string[] }
 const fetchJWKS = async (url: string) =>
 	tryCatch<ErrorInfo, JWKS>(
 		async () => fetch(url).then(async res => res.json()),
-		error => ({
-			type: 'InternalError',
-			message: (error as Error).message,
-		}),
+		ToErrorInfo('Fetching JWKs'),
 	)()
 
 export const verifyToken = ({ ssm }: { ssm: SSM }) => {
@@ -41,14 +38,14 @@ export const verifyToken = ({ ssm }: { ssm: SSM }) => {
 		}
 		if (!decoded)
 			return left({
-				type: 'BadRequest',
+				type: ErrorType.BadRequest,
 				message: `Failed to decode token: "${token}"!`,
 			})
 
 		const { kid } = decoded.header
 		if (!kid) {
 			return left({
-				type: 'BadRequest',
+				type: ErrorType.BadRequest,
 				message: 'Token has no key id!',
 			})
 		}
@@ -69,7 +66,7 @@ export const verifyToken = ({ ssm }: { ssm: SSM }) => {
 		if (!knownKey) {
 			console.log({ keys: maybeJwks.right.keys })
 			return left({
-				type: 'BadRequest',
+				type: ErrorType.BadRequest,
 				message: `Unknown key: "${decoded.header.kid}"!`,
 			})
 		}
@@ -80,7 +77,7 @@ export const verifyToken = ({ ssm }: { ssm: SSM }) => {
 		const valid = jwt.verify(token, key, { algorithms: [alg] })
 		if (!valid)
 			return left({
-				type: 'AccessDenied',
+				type: ErrorType.AccessDenied,
 				message: `Invalid token: "${token}"!`,
 			})
 

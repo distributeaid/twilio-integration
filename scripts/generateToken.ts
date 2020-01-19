@@ -16,7 +16,7 @@ const opts: jwt.SignOptions = {
 	subject: identity,
 	keyid,
 }
-const payload = { contexts: ['general'] }
+const payload = { contexts: ['general', 'random'] }
 
 console.log(chalk.yellow('JWT Options:'))
 console.log(chalk.magenta(JSON.stringify(opts, null, 2)))

@@ -1,7 +1,14 @@
 import { Context } from 'aws-lambda'
 
+export enum ErrorType {
+	EntityNotFound = 'EntityNotFound',
+	BadRequest = 'BadRequest',
+	AccessDenied = 'AccessDenied',
+	InternalError = 'InternalError',
+}
+
 export type ErrorInfo = {
-	type: 'EntityNotFound' | 'BadRequest' | 'AccessDenied' | 'InternalError'
+	type: ErrorType
 	message: string
 }
 
@@ -25,3 +32,10 @@ export const GQLError = (context: Context, error: ErrorInfo) => {
 		},
 	}
 }
+
+export const ToErrorInfo = (action: string, type = ErrorType.InternalError) => (
+	error: unknown,
+): ErrorInfo => ({
+	type,
+	message: `"${action}" failed: "${(error as Error).message}".`,
+})

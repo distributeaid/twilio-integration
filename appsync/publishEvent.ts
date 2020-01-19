@@ -1,6 +1,6 @@
 import { SNS } from 'aws-sdk'
-import { ErrorInfo } from './GQLError'
-import { Event, EventWithPayload } from './events'
+import { ErrorInfo, ToErrorInfo } from './GQLError'
+import { Event, EventWithPayload } from '../events/events'
 import { tryCatch } from 'fp-ts/lib/TaskEither'
 
 const toValue = (v: string | string[] | number): SNS.MessageAttributeValue => {
@@ -35,32 +35,26 @@ export const publishEvent = ({
 	sns: SNS
 	topicArn: string
 }) => async (event: Event | EventWithPayload) =>
-	tryCatch<ErrorInfo, void>(
-		async () => {
-			await sns
-				.publish({
-					Message: JSON.stringify(event),
-					MessageAttributes: {
-						...('eventPayload' in event
-							? Object.entries(event.eventPayload).reduce(
-									(attributes, [k, v]) => ({
-										...attributes,
-										[k]: toValue(v),
-									}),
-									{} as SNS.MessageAttributeMap,
-							  )
-							: {}),
-						eventName: {
-							DataType: 'String',
-							StringValue: event.eventName,
-						},
+	tryCatch<ErrorInfo, void>(async () => {
+		await sns
+			.publish({
+				Message: JSON.stringify(event),
+				MessageAttributes: {
+					...('eventPayload' in event
+						? Object.entries(event.eventPayload).reduce(
+								(attributes, [k, v]) => ({
+									...attributes,
+									[k]: toValue(v),
+								}),
+								{} as SNS.MessageAttributeMap,
+						  )
+						: {}),
+					eventName: {
+						DataType: 'String',
+						StringValue: event.eventName,
 					},
-					TopicArn: topicArn,
-				})
-				.promise()
-		},
-		error => ({
-			type: 'InternalError',
-			message: (error as Error).message,
-		}),
-	)()
+				},
+				TopicArn: topicArn,
+			})
+			.promise()
+	}, ToErrorInfo('Publishing event'))()

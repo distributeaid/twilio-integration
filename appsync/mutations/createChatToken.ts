@@ -1,11 +1,11 @@
 import { Context } from 'aws-lambda'
 import { jwt } from 'twilio'
-import { getTwilioSettings, TwilioSettings } from '../get-twilio-settings'
+import { getTwilioSettings, TwilioSettings } from '../getTwilioSettings'
 import { SSM, SNS } from 'aws-sdk'
 import { ErrorInfo, GQLError } from '../GQLError'
 import { Either, isLeft } from 'fp-ts/lib/Either'
 import { verifyToken } from '../verifyToken'
-import { ChatTokenCreatedEvent } from '../events'
+import { ChatTokenCreated } from '../../events/events'
 import { publishEvent } from '../publishEvent'
 
 const fetchSettings = getTwilioSettings({
@@ -54,7 +54,7 @@ export const handler = async (
 
 	// Publish event
 	const r = await pe(
-		ChatTokenCreatedEvent({
+		ChatTokenCreated({
 			identity,
 			contexts,
 		}),
