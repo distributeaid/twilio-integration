@@ -39,7 +39,7 @@ export const verifyToken = ({ ssm }: { ssm: SSM }) => {
 		if (!decoded)
 			return left({
 				type: ErrorType.BadRequest,
-				message: `Failed to decode token: "${token}"!`,
+				message: `Failed to decode token!`,
 			})
 
 		const { kid } = decoded.header
@@ -74,11 +74,19 @@ export const verifyToken = ({ ssm }: { ssm: SSM }) => {
 		const { alg, key } = knownKey
 
 		// Verify token
-		const valid = jwt.verify(token, key, { algorithms: [alg] })
+		let valid
+		try {
+			valid = jwt.verify(token, key, { algorithms: [alg] })
+		} catch (error) {
+			return left({
+				type: ErrorType.AccessDenied,
+				message: `Invalid token (${error.message})!`,
+			})
+		}
 		if (!valid)
 			return left({
 				type: ErrorType.AccessDenied,
-				message: `Invalid token: "${token}"!`,
+				message: `Invalid token!`,
 			})
 
 		return right({
