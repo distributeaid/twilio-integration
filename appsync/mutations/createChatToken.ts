@@ -2,11 +2,12 @@ import { Context } from 'aws-lambda'
 import { jwt } from 'twilio'
 import { getTwilioSettings, TwilioSettings } from '../getTwilioSettings'
 import { SSM, SNS } from 'aws-sdk'
-import { ErrorInfo, GQLError } from '../GQLError'
+import { GQLError } from '../GQLError'
 import { Either, isLeft } from 'fp-ts/lib/Either'
 import { verifyToken } from '../verifyToken'
 import { ChatTokenCreated } from '../../events/events'
 import { publishEvent } from '../publishEvent'
+import { ErrorInfo } from '../ErrorInfo'
 
 const fetchSettings = getTwilioSettings({
 	ssm: new SSM({ region: process.env.AWS_REGION }),
@@ -44,6 +45,7 @@ export const handler = async (
 	const endpointId = `dachat:${identity}:${deviceId}`
 	const token = new jwt.AccessToken(accountSID, apiKey, apiSecret, {
 		identity: identity,
+		ttl: 24 * 60 * 60,
 	})
 	token.addGrant(
 		new jwt.AccessToken.ChatGrant({

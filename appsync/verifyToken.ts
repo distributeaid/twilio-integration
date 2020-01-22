@@ -2,9 +2,10 @@ import { SSM } from 'aws-sdk'
 import { Either, isLeft, right, left } from 'fp-ts/lib/Either'
 import fetch from 'node-fetch'
 import * as jwt from 'jsonwebtoken'
-import { ErrorInfo, ToErrorInfo, ErrorType } from './GQLError'
+import { ToErrorInfo } from './GQLError'
 import { getChatSettings } from './getChatSettings'
 import { tryCatch } from 'fp-ts/lib/TaskEither'
+import { ErrorInfo, ErrorType } from './ErrorInfo'
 
 type JWKS = {
 	keys: {
@@ -53,7 +54,7 @@ export const verifyToken = ({ ssm }: { ssm: SSM }) => {
 		if (!jwks[kid]) {
 			jwks[kid] = fetchSettings().then(async maybeSettings => {
 				if (isLeft(maybeSettings)) return maybeSettings
-				return fetchJWKS(maybeSettings.right.jwks)
+				return fetchJWKS(maybeSettings.right)
 			})
 		}
 		const maybeJwks = await jwks[kid]

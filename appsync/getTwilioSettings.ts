@@ -1,7 +1,9 @@
 import { SSM } from 'aws-sdk'
-import { ErrorInfo, ErrorType } from './GQLError'
-import { Either, left, right } from 'fp-ts/lib/Either'
 import { getSettings } from './getSettings'
+import * as TE from 'fp-ts/lib/TaskEither'
+import { pipe } from 'fp-ts/lib/pipeable'
+import { ErrorType } from './ErrorInfo'
+import { isNone, Some, Option } from 'fp-ts/lib/Option'
 
 export type TwilioSettings = {
 	apiKey: string
@@ -11,29 +13,33 @@ export type TwilioSettings = {
 	restApiKey: string
 }
 
-export const getTwilioSettings = ({ ssm }: { ssm: SSM }) => async (): Promise<
-	Either<ErrorInfo, TwilioSettings>
-> => {
-	const f = await getSettings({ ssm, scope: 'twilio' })
+const unwrapOptionalKeys = <A>(o: { [key: string]: Option<unknown> }) =>
+	Object.entries(o).reduce(
+		(o, [k, v]) => ({
+			...o,
+			[k]: (v as Some<unknown>).value,
+		}),
+		{} as A,
+	)
 
-	const apiKey = f('apiKey')
-	const apiSecret = f('apiSecret')
-	const accountSID = f('accountSID')
-	const chatServiceSID = f('chatServiceSID')
-	const restApiKey = f('restApiKey')
-
-	if (!apiKey || !apiSecret || !accountSID || !chatServiceSID || !restApiKey) {
-		return left({
-			type: ErrorType.EntityNotFound,
-			message: 'Twilio configuration not available!',
-		})
-	}
-
-	return right({
-		apiKey,
-		apiSecret,
-		accountSID,
-		chatServiceSID,
-		restApiKey,
-	})
-}
+export const getTwilioSettings = ({ ssm }: { ssm: SSM }) =>
+	pipe(
+		getSettings({ ssm, scope: 'twilio' }),
+		TE.map(f => ({
+			apiKey: f('apiKey'),
+			apiSecret: f('apiSecret'),
+			accountSID: f('accountSID'),
+			chatServiceSID: f('chatServiceSID'),
+			restApiKey: f('restApiKey'),
+		})),
+		TE.map(cfg =>
+			Object.values(cfg).filter(isNone).length
+				? TE.left({
+						type: ErrorType.EntityNotFound,
+						message: 'Twilio configuration not available!',
+				  })
+				: TE.right(cfg),
+		),
+		TE.flatten,
+		TE.map(cfg => unwrapOptionalKeys<TwilioSettings>(cfg)),
+	)

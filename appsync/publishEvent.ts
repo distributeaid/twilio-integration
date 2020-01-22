@@ -1,7 +1,8 @@
 import { SNS } from 'aws-sdk'
-import { ErrorInfo, ToErrorInfo } from './GQLError'
+import { ToErrorInfo } from './GQLError'
 import { Event, EventWithPayload } from '../events/events'
 import { tryCatch } from 'fp-ts/lib/TaskEither'
+import { ErrorInfo } from './ErrorInfo'
 
 const toValue = (v: string | string[] | number): SNS.MessageAttributeValue => {
 	if (typeof v === 'string') {

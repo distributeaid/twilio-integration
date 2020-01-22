@@ -1,27 +1,22 @@
 import { SSM } from 'aws-sdk'
-import { ErrorInfo, ErrorType } from './GQLError'
-import { Either, left, right } from 'fp-ts/lib/Either'
 import { getSettings } from './getSettings'
+import * as TE from 'fp-ts/lib/TaskEither'
+import { pipe } from 'fp-ts/lib/pipeable'
+import { ErrorType } from './ErrorInfo'
+import { getOrElse } from './fp-ts.util'
 
 export type ChatSettings = {
 	jwks: string
 }
 
-export const getChatSettings = ({ ssm }: { ssm: SSM }) => async (): Promise<
-	Either<ErrorInfo, ChatSettings>
-> => {
-	const f = await getSettings({ ssm, scope: 'chat' })
-
-	const jwks = f('jwks.json')
-
-	if (!jwks) {
-		return left({
-			type: ErrorType.EntityNotFound,
-			message: 'Chat configuration not available!',
-		})
-	}
-
-	return right({
-		jwks,
-	})
-}
+export const getChatSettings = ({ ssm }: { ssm: SSM }) =>
+	pipe(
+		getSettings({ ssm, scope: 'chat' }),
+		TE.map(f => f('jwks.json')),
+		getOrElse.TE(() =>
+			TE.left({
+				type: ErrorType.EntityNotFound,
+				message: 'Chat configuration not available!',
+			}),
+		),
+	)

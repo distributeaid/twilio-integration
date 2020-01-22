@@ -3,13 +3,14 @@ import { TwilioSettings, getTwilioSettings } from '../appsync/getTwilioSettings'
 import { tryCatch, orElse } from 'fp-ts/lib/TaskEither'
 import { Either } from 'fp-ts/lib/Either'
 import { ServiceContext } from 'twilio/lib/rest/chat/v2/service'
-import { ErrorInfo, ToErrorInfo } from '../appsync/GQLError'
+import { ToErrorInfo } from '../appsync/GQLError'
 import { UserInstance } from 'twilio/lib/rest/chat/v2/service/user'
 import { SSM } from 'aws-sdk'
 import { MemberInstance } from 'twilio/lib/rest/chat/v2/service/channel/member'
 import { ChannelInstance } from 'twilio/lib/rest/chat/v2/service/channel'
 import { isLeft } from 'fp-ts/lib/Either'
 import { SNSEvent } from 'aws-lambda'
+import { ErrorInfo } from '../appsync/ErrorInfo'
 
 const fetchUser = (chatService: ServiceContext) => (identity: string) =>
 	tryCatch<ErrorInfo, UserInstance>(

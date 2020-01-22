@@ -1,27 +1,34 @@
 import { SSM } from 'aws-sdk'
+import * as TE from 'fp-ts/lib/TaskEither'
+import { Option, fromNullable } from 'fp-ts/lib/Option'
+import { ErrorInfo, ErrorType } from './ErrorInfo'
 
 const findParameterByName = (Path: string, Parameters?: SSM.ParameterList) => (
 	name: string,
-): string | undefined =>
-	Parameters?.find(({ Name }) => Name?.replace(`${Path}/`, '') === name)?.Value
+) =>
+	fromNullable(
+		Parameters?.find(({ Name }) => Name?.replace(`${Path}/`, '') === name)
+			?.Value,
+	)
 
-export const getSettings = async ({
-	ssm,
-	scope,
-}: {
-	ssm: SSM
-	scope: string
-}): Promise<(name: string) => string | undefined> => {
-	const Path = `/${scope}`
-	const { Parameters } = await ssm
-		.getParametersByPath({
-			Path,
-			Recursive: true,
-			WithDecryption: true,
-		})
-		.promise()
+export const getSettings = ({ ssm, scope }: { ssm: SSM; scope: string }) =>
+	TE.tryCatch<ErrorInfo, (name: string) => Option<string>>(
+		async () => {
+			const Path = `/${scope}`
+			const { Parameters } = await ssm
+				.getParametersByPath({
+					Path,
+					Recursive: true,
+					WithDecryption: true,
+				})
+				.promise()
 
-	const f = findParameterByName(Path, Parameters)
+			const f = findParameterByName(Path, Parameters)
 
-	return f
-}
+			return f
+		},
+		reason => ({
+			type: ErrorType.InternalError,
+			message: `Failed to fetch settings: ${(reason as Error).message}`,
+		}),
+	)
