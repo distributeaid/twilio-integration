@@ -4,6 +4,7 @@ import { packLayeredLambdasForCloudFormation } from '../packLambdas'
 
 export type TwilioIntegrationLayeredLambdas = LayeredLambdas<{
 	createChatTokenMutation: string
+	updateNickMutation: string
 	verifyTokenQuery: string
 	setUpUserChannels: string
 }>
@@ -19,6 +20,12 @@ export const lambdas = async (
 			'appsync',
 			'mutations',
 			'createChatToken.ts',
+		),
+		updateNickMutation: path.resolve(
+			rootDir,
+			'appsync',
+			'mutations',
+			'updateNick.ts',
 		),
 		verifyTokenQuery: path.resolve(
 			rootDir,
