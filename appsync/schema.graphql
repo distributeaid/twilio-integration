@@ -1,6 +1,5 @@
 type Mutation {
     createChatToken(deviceId: ID!, token: ID!): ID!
-    updateNick(nick: String!, token: ID!): Boolean!
 }
 
 type Query {

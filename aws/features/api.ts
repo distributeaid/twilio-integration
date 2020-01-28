@@ -69,7 +69,6 @@ export class ApiFeature extends Construct {
 		id: string,
 		lambdas: {
 			createChatTokenMutation: Code
-			updateNickMutation: Code
 			verifyTokenQuery: Code
 		},
 		baseLayer: ILayerVersion,
@@ -125,33 +124,6 @@ export class ApiFeature extends Construct {
 			'createChatToken',
 			'Mutation',
 			lambdas.createChatTokenMutation,
-			[
-				new PolicyStatement({
-					actions: ['ssm:GetParametersByPath'],
-					resources: [
-						`arn:aws:ssm:${stack.region}:${stack.account}:parameter/twilio`,
-						`arn:aws:ssm:${stack.region}:${stack.account}:parameter/chat`,
-					],
-				}),
-				new PolicyStatement({
-					actions: ['sns:Publish'],
-					resources: [eventsTopic.topicArn],
-				}),
-			],
-			{
-				SNS_EVENTS_TOPIC: eventsTopic.topicArn,
-			},
-		)
-
-		gqlLambda(
-			this,
-			stack,
-			baseLayer,
-			this.api,
-			schema,
-			'updateNick',
-			'Mutation',
-			lambdas.updateNickMutation,
 			[
 				new PolicyStatement({
 					actions: ['ssm:GetParametersByPath'],
