@@ -1,6 +1,6 @@
 # Distribute Aid in-app-chat Twilio integration
 
-[![GitHub Actions](https://github.com/distributeaid/twilio-integration/workflows/Test%20and%20Release/badge.svg)](https://github.com/distributeaid/twilio-integration/actions)
+![Test and Release](https://github.com/distributeaid/twilio-integration/workflows/Test%20and%20Release/badge.svg)
 [![Greenkeeper badge](https://badges.greenkeeper.io/distributeaid/twilio-integration.svg)](https://greenkeeper.io/)
 [![semantic-release](https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg)](https://github.com/semantic-release/semantic-release)
 [![Commitizen friendly](https://img.shields.io/badge/commitizen-friendly-brightgreen.svg)](http://commitizen.github.io/cz-cli/)
@@ -17,10 +17,9 @@ Make sure your have AWS credentials in your environment.
 The Twilio API credentials need to be provided:
 
     aws ssm put-parameter --name /twilio/apiKey --type String --value <API Key>
-    aws ssm put-parameter --name /twilio/apiSecret --type SecretString --value <API Secret>
+    aws ssm put-parameter --name /twilio/apiSecret --type SecureString --value <API Secret>
     aws ssm put-parameter --name /twilio/accountSID --type String --value <Account SID>
     aws ssm put-parameter --name /twilio/chatServiceSID --type String --value <Chat Service SID>
-    aws ssm put-parameter --name /twilio/restApiKey --type SecretString --value <REST API Key>
 
 If this is the run the first time in an account
 
@@ -29,11 +28,6 @@ If this is the run the first time in an account
 Deploy the integration:
 
     npx cdk deploy
-
-## Tests
-
-    export STACK_NAME=${STACK_NAME:-twilio-integration-dev}
-    npm test
 
 ## Generating keypairs
 
@@ -81,3 +75,16 @@ Register the URL with the integration:
 
 When verifying tokens, the integration will look up this URL to retrieve the
 public key.
+
+## Continuous Integration
+
+This project is continuously tested using a real instance.
+
+### Setup
+
+Provide the Twilio Chat configuration to use
+
+    aws ssm put-parameter --name /twilio-integration-test/twilio/apiKey --type String --value <API Key>
+    aws ssm put-parameter --name /twilio-integration-test/twilio/apiSecret --type SecureString --value <API Secret>
+    aws ssm put-parameter --name /twilio-integration-test/twilio/accountSID --type String --value <Account SID>
+    aws ssm put-parameter --name /twilio-integration-test/twilio/chatServiceSID --type String --value <Chat Service SID>

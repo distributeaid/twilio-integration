@@ -9,9 +9,15 @@ export type ChatSettings = {
 	jwks: string
 }
 
-export const getChatSettings = ({ ssm }: { ssm: SSM }) =>
+export const getChatSettings = ({
+	ssm,
+	scopePrefix,
+}: {
+	ssm: SSM
+	scopePrefix?: string
+}) =>
 	pipe(
-		getSettings({ ssm, scope: 'chat' }),
+		getSettings({ ssm, scope: `${scopePrefix}chat` }),
 		TE.map(f => f('jwks.json')),
 		getOrElse.TE(() =>
 			TE.left({

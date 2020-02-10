@@ -20,6 +20,7 @@ import {
 
 const fetchSettings = getTwilioSettings({
 	ssm: new SSM({ region: process.env.AWS_REGION }),
+	scopePrefix: process.env.SSM_SCOPE_PREFIX,
 })
 let twilioSettings: Promise<Either<ErrorInfo, TwilioSettings>>
 
@@ -41,9 +42,9 @@ export const handler = async ({ Records }: SNSEvent) => {
 		console.error(JSON.stringify(maybeSettings.left))
 		return
 	}
-	const { accountSID, restApiKey, chatServiceSID } = maybeSettings.right
+	const { accountSID, apiSecret, chatServiceSID } = maybeSettings.right
 
-	const client = new Twilio(accountSID, restApiKey)
+	const client = new Twilio(accountSID, apiSecret)
 	const chatService = client.chat.services(chatServiceSID)
 
 	const maybeUser = await orElse<ErrorInfo, UserInstance, ErrorInfo>(() =>

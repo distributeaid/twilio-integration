@@ -6,6 +6,7 @@ import { verifyToken } from '../verifyToken'
 
 const verify = verifyToken({
 	ssm: new SSM({ region: process.env.AWS_REGION }),
+	scopePrefix: process.env.SSM_SCOPE_PREFIX,
 })
 
 export const handler = async (

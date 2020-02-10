@@ -28,9 +28,16 @@ const fetchJWKS = async (url: string) =>
 		ToErrorInfo('Fetching JWKs'),
 	)()
 
-export const verifyToken = ({ ssm }: { ssm: SSM }) => {
+export const verifyToken = ({
+	ssm,
+	scopePrefix,
+}: {
+	ssm: SSM
+	scopePrefix?: string
+}) => {
 	const fetchSettings = getChatSettings({
 		ssm,
+		scopePrefix,
 	})
 	return async (token: string): Promise<Either<ErrorInfo, TokenInfo>> => {
 		// Decode token

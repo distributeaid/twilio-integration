@@ -14,10 +14,12 @@ import { fetchUser, updateUserAttributes } from '../../integration/api'
 
 const fetchSettings = getTwilioSettings({
 	ssm: new SSM({ region: process.env.AWS_REGION }),
+	scopePrefix: process.env.SSM_SCOPE_PREFIX,
 })
 let twilioSettings: Promise<Either<ErrorInfo, TwilioSettings>>
 const verify = verifyToken({
 	ssm: new SSM({ region: process.env.AWS_REGION }),
+	scopePrefix: process.env.SSM_SCOPE_PREFIX,
 })
 const pe = publishEvent({
 	sns: new SNS({ region: process.env.AWS_REGION }),
@@ -43,9 +45,9 @@ export const handler = async (
 
 	const { nick } = event
 	const { identity } = maybeValidToken.right
-	const { restApiKey, accountSID, chatServiceSID } = maybeSettings.right
+	const { apiSecret, accountSID, chatServiceSID } = maybeSettings.right
 
-	const client = new Twilio(accountSID, restApiKey)
+	const client = new Twilio(accountSID, apiSecret)
 	const chatService = client.chat.services(chatServiceSID)
 
 	const r = await pipe(

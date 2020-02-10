@@ -4,7 +4,7 @@ import { CoreStack } from '../stacks/core'
 
 export class TwilioIntegrationApp extends App {
 	constructor(
-		stackName = 'twilio-integration-dev',
+		stackName: string,
 		sourceCodeBucketName: string,
 		baseLayerZipFileName: string,
 		layeredLambdas: TwilioIntegrationLayeredLambdas,

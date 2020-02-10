@@ -40,14 +40,17 @@ const listUsers = ({
 	chatServiceSID: string
 }) => async () => client.chat.services(chatServiceSID).users.list()
 
-getTwilioSettings({ ssm: new SSM({ region: process.env.AWS_REGION }) })()
+getTwilioSettings({
+	ssm: new SSM({ region: process.env.AWS_REGION }),
+	scopePrefix: process.env.SSM_SCOPE_PREFIX,
+})()
 	.then(async maybeCfg => {
 		if (isLeft(maybeCfg)) {
 			console.error(maybeCfg.left.message)
 			process.exit(1)
 		}
 		const cfg = maybeCfg.right
-		const client = new Twilio(cfg.accountSID, cfg.restApiKey)
+		const client = new Twilio(cfg.accountSID, cfg.apiSecret)
 		const r = listRoles({ client, chatServiceSID: cfg.chatServiceSID })
 		const c = createServiceRole({ client, chatServiceSID: cfg.chatServiceSID })
 		const u = listUsers({ client, chatServiceSID: cfg.chatServiceSID })

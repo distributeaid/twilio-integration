@@ -28,7 +28,7 @@ const gqlLambda = (
 ): Function => {
 	const f = new Function(parent, `${field}${type}`, {
 		handler: 'index.handler',
-		runtime: Runtime.NODEJS_10_X,
+		runtime: Runtime.NODEJS_12_X,
 		timeout: Duration.seconds(30),
 		memorySize: 1792,
 		initialPolicy: [
@@ -44,7 +44,10 @@ const gqlLambda = (
 			}),
 			...policies,
 		],
-		environment,
+		environment: {
+			...environment,
+			SSM_SCOPE_PREFIX: process.env.SSM_SCOPE_PREFIX || 'twilio',
+		},
 		layers: [baseLayer],
 		code: lambda,
 	})
