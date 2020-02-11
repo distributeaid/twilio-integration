@@ -26,10 +26,10 @@ export const getTwilioSettings = ({
 	scopePrefix,
 }: {
 	ssm: SSM
-	scopePrefix?: string
+	scopePrefix: string
 }) =>
 	pipe(
-		getSettings({ ssm, scope: `${scopePrefix}twilio` }),
+		getSettings({ ssm, scope: `${scopePrefix}/twilio` }),
 		TE.map(f => ({
 			apiKey: f('apiKey'),
 			apiSecret: f('apiSecret'),

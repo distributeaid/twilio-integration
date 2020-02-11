@@ -9,9 +9,12 @@ env:
   AWS_DEFAULT_REGION: eu-central-1
   AWS_REGION: eu-central-1
   STACK_NAME: test-${{ github.sha }}
-  SSM_SCOPE_PREFIX: /twilio-integration-test
   CI: 1
   FORCE_COLOR: 3
+  TWILIO_API_KEY: ${{ secrets.TWILIO_API_KEY }}
+  TWILIO_API_SECRET: ${{ secrets.TWILIO_API_SECRET }}
+  TWILIO_ACCOUNT_SID: ${{ secrets.TWILIO_ACCOUNT_SID }}
+  TWILIO_CHAT_SERVICE_SID: ${{ secrets.TWILIO_CHAT_SERVICE_SID }}
 
 jobs:
   tests:
@@ -42,6 +45,23 @@ jobs:
           npx cdk -a 'node dist/aws/cloudformation-sourcecode.js' deploy
           npx cdk bootstrap
           npx cdk deploy --require-approval never
+          npx cdk -a 'node dist/aws/cloudformation-test-extras.js' deploy --require-approval never
+      - name: Configure Twilio
+        run: |
+          aws ssm put-parameter --name /$STACK_NAME/twilio/apiKey --type String --value $TWILIO_API_KEY
+          aws ssm put-parameter --name /$STACK_NAME/twilio/apiSecret --type SecureString --value $TWILIO_API_SECRET
+          aws ssm put-parameter --name /$STACK_NAME/twilio/accountSID --type String --value $TWILIO_ACCOUNT_SID
+          aws ssm put-parameter --name /$STACK_NAME/twilio/chatServiceSID --type String --value $TWILIO_CHAT_SERVICE_SID
+          node dist/scripts/fixPermissions.js
+      - name: Create and publish JWT keypair
+        run: |
+          export KEY_ID=`uuidgen`
+          openssl ecparam -genkey -name secp256r1 -noout -out ecdsa-p256-${KEY_ID}-private.pem
+          openssl ec -in ecdsa-p256-${KEY_ID}-private.pem -pubout -out ecdsa-p256-${KEY_ID}-public.pem
+          export WEBSITE_BUCKET=`aws cloudformation describe-stacks --stack-name $STACK_NAME-test-extras | jq -r '.Stacks[0].Outputs[] | select(.OutputKey=="bucketName") | .OutputValue'`
+          node dist/scripts/publish-test-key.js
+          export WEBSITE_URL=`aws cloudformation describe-stacks --stack-name $STACK_NAME-test-extras | jq -r '.Stacks[0].Outputs[] | select(.OutputKey=="bucketWebsiteUrl") | .OutputValue'`
+          aws ssm put-parameter --name /$STACK_NAME/chat/jwks.json --type String --value $WEBSITE_URL/.well-known/jwks.json
       - name: End-to-End Tests
         run: npm run test:e2e
       - name: Semantic release
@@ -58,3 +78,10 @@ jobs:
           aws s3 rb s3://$SOURCE_CODE_BUCKET --force
           # Delete the sourceode stack
           npx cdk -a 'node dist/aws/cloudformation-sourcecode.js' destroy -f '*'
+          # Delete website bucket
+          WEBSITE_BUCKET=`aws cloudformation describe-stacks --stack-name $STACK_NAME-test-extras | jq -r '.Stacks[0].Outputs[0].OutputValue'`
+          aws s3 rb s3://$WEBSITE_BUCKET --force
+          # Delete the test-extras stack
+          npx cdk -a 'node dist/aws/cloudformation-test-extras.js' destroy -f '*'
+          # Delete SSM Parameters
+          aws ssm delete-parameters --names /$STACK_NAME/twilio/apiKey /$STACK_NAME/twilio/apiSecret /$STACK_NAME/twilio/accountSID /$STACK_NAME/twilio/chatServiceSID /$STACK_NAME/chat/jwks.json

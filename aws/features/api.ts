@@ -46,7 +46,7 @@ const gqlLambda = (
 		],
 		environment: {
 			...environment,
-			SSM_SCOPE_PREFIX: process.env.SSM_SCOPE_PREFIX || 'twilio',
+			STACK_NAME: stack.stackName,
 		},
 		layers: [baseLayer],
 		code: lambda,

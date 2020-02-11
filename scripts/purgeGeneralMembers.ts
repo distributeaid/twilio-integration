@@ -5,7 +5,7 @@ import { isLeft } from 'fp-ts/lib/Either'
 
 getTwilioSettings({
 	ssm: new SSM({ region: process.env.AWS_REGION }),
-	scopePrefix: process.env.SSM_SCOPE_PREFIX,
+	scopePrefix: process.env.STACK_NAME as string,
 })()
 	.then(async maybeCfg => {
 		if (isLeft(maybeCfg)) {

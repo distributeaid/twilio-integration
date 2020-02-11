@@ -33,7 +33,7 @@ export const verifyToken = ({
 	scopePrefix,
 }: {
 	ssm: SSM
-	scopePrefix?: string
+	scopePrefix: string
 }) => {
 	const fetchSettings = getChatSettings({
 		ssm,

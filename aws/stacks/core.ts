@@ -73,3 +73,8 @@ export class CoreStack extends Stack {
 		)
 	}
 }
+
+export type StackConfig = {
+	apiUrl: string
+	apiKey: string
+}

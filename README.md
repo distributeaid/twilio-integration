@@ -16,10 +16,10 @@ Make sure your have AWS credentials in your environment.
 
 The Twilio API credentials need to be provided:
 
-    aws ssm put-parameter --name /twilio/apiKey --type String --value <API Key>
-    aws ssm put-parameter --name /twilio/apiSecret --type SecureString --value <API Secret>
-    aws ssm put-parameter --name /twilio/accountSID --type String --value <Account SID>
-    aws ssm put-parameter --name /twilio/chatServiceSID --type String --value <Chat Service SID>
+    aws ssm put-parameter --name /${STACK_NAME:-twilio-integration-dev}/twilio/apiKey --type String --value <API Key>
+    aws ssm put-parameter --name /${STACK_NAME:-twilio-integration-dev}/twilio/apiSecret --type SecureString --value <API Secret>
+    aws ssm put-parameter --name /${STACK_NAME:-twilio-integration-dev}/twilio/accountSID --type String --value <Account SID>
+    aws ssm put-parameter --name /${STACK_NAME:-twilio-integration-dev}/twilio/chatServiceSID --type String --value <Chat Service SID>
 
 If this is the run the first time in an account
 
@@ -28,6 +28,10 @@ If this is the run the first time in an account
 Deploy the integration:
 
     npx cdk deploy
+
+Fix the default Twilio permissions:
+
+    node dist/scripts/fixPermissions.js
 
 ## Generating keypairs
 
@@ -71,7 +75,7 @@ Example:
 Register the URL with the integration:
 
     # disable URL resolution in the AWS CLI: aws configure set cli_follow_urlparam false
-    aws ssm put-parameter --name /chat/jwks.json --type String --value <URL>
+    aws ssm put-parameter --name /${STACK_NAME:-twilio-integration-dev}/chat/jwks.json --type String --value <URL>
 
 When verifying tokens, the integration will look up this URL to retrieve the
 public key.
@@ -79,12 +83,3 @@ public key.
 ## Continuous Integration
 
 This project is continuously tested using a real instance.
-
-### Setup
-
-Provide the Twilio Chat configuration to use
-
-    aws ssm put-parameter --name /twilio-integration-test/twilio/apiKey --type String --value <API Key>
-    aws ssm put-parameter --name /twilio-integration-test/twilio/apiSecret --type SecureString --value <API Secret>
-    aws ssm put-parameter --name /twilio-integration-test/twilio/accountSID --type String --value <Account SID>
-    aws ssm put-parameter --name /twilio-integration-test/twilio/chatServiceSID --type String --value <Chat Service SID>

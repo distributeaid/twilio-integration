@@ -14,10 +14,10 @@ export const getChatSettings = ({
 	scopePrefix,
 }: {
 	ssm: SSM
-	scopePrefix?: string
+	scopePrefix: string
 }) =>
 	pipe(
-		getSettings({ ssm, scope: `${scopePrefix}chat` }),
+		getSettings({ ssm, scope: `${scopePrefix}/chat` }),
 		TE.map(f => f('jwks.json')),
 		getOrElse.TE(() =>
 			TE.left({
