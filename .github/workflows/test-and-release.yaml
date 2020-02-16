@@ -56,6 +56,7 @@ jobs:
       - name: Create and publish JWT keypair
         run: |
           export KEY_ID=`uuidgen`
+          echo -n $KEY_ID > .keyid
           openssl ecparam -genkey -name secp256r1 -noout -out ecdsa-p256-${KEY_ID}-private.pem
           openssl ec -in ecdsa-p256-${KEY_ID}-private.pem -pubout -out ecdsa-p256-${KEY_ID}-public.pem
           export WEBSITE_BUCKET=`aws cloudformation describe-stacks --stack-name $STACK_NAME-test-extras | jq -r '.Stacks[0].Outputs[] | select(.OutputKey=="bucketName") | .OutputValue'`
@@ -63,7 +64,9 @@ jobs:
           export WEBSITE_URL=`aws cloudformation describe-stacks --stack-name $STACK_NAME-test-extras | jq -r '.Stacks[0].Outputs[] | select(.OutputKey=="bucketWebsiteUrl") | .OutputValue'`
           aws ssm put-parameter --name /$STACK_NAME/chat/jwks.json --type String --value $WEBSITE_URL/.well-known/jwks.json
       - name: End-to-End Tests
-        run: npm run test:e2e
+        run: |
+          export KEY_ID=`cat .keyid`
+          npm run test:e2e
       - name: Semantic release
         continue-on-error: true
         run: |

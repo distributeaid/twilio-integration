@@ -9,6 +9,9 @@ import {
 import * as chalk from 'chalk'
 import * as program from 'commander'
 import { StackConfig } from '../aws/stacks/core'
+import { twilioIntegrationSteps } from './twilioIntegrationSteps'
+import * as fs from 'fs'
+import * as path from 'path'
 
 let ran = false
 
@@ -17,6 +20,14 @@ export type World = {
 	graqphQLApiApiKey: string
 	region: string
 }
+
+const keyId = process.env.KEY_ID || ''
+const privateKey = fs
+	.readFileSync(
+		path.join(process.cwd(), `ecdsa-p256-${keyId}-private.pem`),
+		'utf-8',
+	)
+	.toString()
 
 program
 	.arguments('<featureDir>')
@@ -67,6 +78,12 @@ program
 			await appSyncBeforeAll(runner)
 			const { success } = await runner
 				.addStepRunners(appSyncStepRunners())
+				.addStepRunners(
+					twilioIntegrationSteps({
+						keyId,
+						privateKey,
+					}),
+				)
 				.run()
 			await appSyncAfterAll(runner)
 			if (!success) {
