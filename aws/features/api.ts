@@ -131,8 +131,8 @@ export class ApiFeature extends Construct {
 				new PolicyStatement({
 					actions: ['ssm:GetParametersByPath'],
 					resources: [
-						`arn:aws:ssm:${stack.region}:${stack.account}:parameter/twilio`,
-						`arn:aws:ssm:${stack.region}:${stack.account}:parameter/chat`,
+						`arn:aws:ssm:${stack.region}:${stack.account}:parameter/${stack.stackName}/twilio`,
+						`arn:aws:ssm:${stack.region}:${stack.account}:parameter/${stack.stackName}/chat`,
 					],
 				}),
 				new PolicyStatement({
@@ -158,7 +158,7 @@ export class ApiFeature extends Construct {
 				new PolicyStatement({
 					actions: ['ssm:GetParametersByPath'],
 					resources: [
-						`arn:aws:ssm:${stack.region}:${stack.account}:parameter/chat`,
+						`arn:aws:ssm:${stack.region}:${stack.account}:parameter/${stack.stackName}/chat`,
 					],
 				}),
 			],

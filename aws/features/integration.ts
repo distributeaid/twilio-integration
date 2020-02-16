@@ -40,7 +40,7 @@ export class IntegrationFeature extends Construct {
 					new PolicyStatement({
 						actions: ['ssm:GetParametersByPath'],
 						resources: [
-							`arn:aws:ssm:${stack.region}:${stack.account}:parameter/twilio`,
+							`arn:aws:ssm:${stack.region}:${stack.account}:parameter/${stack.stackName}/twilio`,
 						],
 					}),
 				],
