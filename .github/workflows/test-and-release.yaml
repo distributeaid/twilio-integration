@@ -62,6 +62,7 @@ jobs:
           export WEBSITE_BUCKET=`aws cloudformation describe-stacks --stack-name $STACK_NAME-test-extras | jq -r '.Stacks[0].Outputs[] | select(.OutputKey=="bucketName") | .OutputValue'`
           node dist/scripts/publish-test-key.js
           export WEBSITE_URL=`aws cloudformation describe-stacks --stack-name $STACK_NAME-test-extras | jq -r '.Stacks[0].Outputs[] | select(.OutputKey=="bucketWebsiteUrl") | .OutputValue'`
+          aws configure set cli_follow_urlparam false
           aws ssm put-parameter --name /$STACK_NAME/chat/jwks.json --type String --value $WEBSITE_URL/.well-known/jwks.json
       - name: End-to-End Tests
         run: |
