@@ -12,6 +12,7 @@ import { StackConfig } from '../aws/stacks/core'
 import { twilioIntegrationSteps } from './twilioIntegrationSteps'
 import * as fs from 'fs'
 import * as path from 'path'
+import { uuidHelper } from './uuidHelpers'
 
 let ran = false
 
@@ -84,6 +85,7 @@ program
 						privateKey,
 					}),
 				)
+				.addStepRunners(uuidHelper())
 				.run()
 			await appSyncAfterAll(runner)
 			if (!success) {
