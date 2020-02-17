@@ -46,6 +46,9 @@ export class IntegrationFeature extends Construct {
 				],
 				layers: [baseLayer],
 				code: lambdas.setUpUserChannelsLambda,
+				environment: {
+					STACK_NAME: stack.stackName,
+				},
 			},
 		)
 

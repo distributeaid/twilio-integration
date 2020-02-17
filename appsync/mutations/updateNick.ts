@@ -45,9 +45,9 @@ export const handler = async (
 
 	const { nick } = event
 	const { identity } = maybeValidToken.right
-	const { apiSecret, accountSID, chatServiceSID } = maybeSettings.right
+	const { apiKey, apiSecret, accountSID, chatServiceSID } = maybeSettings.right
 
-	const client = new Twilio(accountSID, apiSecret)
+	const client = new Twilio(apiKey, apiSecret, { accountSid: accountSID })
 	const chatService = client.chat.services(chatServiceSID)
 
 	const r = await pipe(
