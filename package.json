@@ -93,5 +93,11 @@
         "diagnostics": true
       }
     }
+  },
+  "release": {
+    "branches": [
+      "saga"
+    ],
+    "remoteTags": true
   }
 }
