@@ -23,7 +23,7 @@ export class IntegrationFeature extends Construct {
 			`setUpUserChannelsLambda`,
 			{
 				handler: 'index.handler',
-				runtime: Runtime.NODEJS_10_X,
+				runtime: Runtime.NODEJS_12_X,
 				timeout: Duration.seconds(30),
 				memorySize: 1792,
 				initialPolicy: [
@@ -40,7 +40,7 @@ export class IntegrationFeature extends Construct {
 					new PolicyStatement({
 						actions: ['ssm:GetParametersByPath'],
 						resources: [
-							`arn:aws:ssm:${stack.region}:${stack.account}:parameter/twilio`,
+							`arn:aws:ssm:${stack.region}:${stack.account}:parameter/${stack.stackName}/twilio`,
 						],
 					}),
 				],

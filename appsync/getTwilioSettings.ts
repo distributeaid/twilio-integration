@@ -10,7 +10,6 @@ export type TwilioSettings = {
 	apiSecret: string
 	accountSID: string
 	chatServiceSID: string
-	restApiKey: string
 }
 
 const unwrapOptionalKeys = <A>(o: { [key: string]: Option<unknown> }) =>
@@ -22,15 +21,20 @@ const unwrapOptionalKeys = <A>(o: { [key: string]: Option<unknown> }) =>
 		{} as A,
 	)
 
-export const getTwilioSettings = ({ ssm }: { ssm: SSM }) =>
+export const getTwilioSettings = ({
+	ssm,
+	scopePrefix,
+}: {
+	ssm: SSM
+	scopePrefix: string
+}) =>
 	pipe(
-		getSettings({ ssm, scope: 'twilio' }),
+		getSettings({ ssm, scope: `${scopePrefix}/twilio` }),
 		TE.map(f => ({
 			apiKey: f('apiKey'),
 			apiSecret: f('apiSecret'),
 			accountSID: f('accountSID'),
 			chatServiceSID: f('chatServiceSID'),
-			restApiKey: f('restApiKey'),
 		})),
 		TE.map(cfg =>
 			Object.values(cfg).filter(isNone).length

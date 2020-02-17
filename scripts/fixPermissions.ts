@@ -40,17 +40,27 @@ const listUsers = ({
 	chatServiceSID: string
 }) => async () => client.chat.services(chatServiceSID).users.list()
 
-getTwilioSettings({ ssm: new SSM({ region: process.env.AWS_REGION }) })()
+getTwilioSettings({
+	ssm: new SSM({ region: process.env.AWS_REGION }),
+	scopePrefix: process.env.STACK_NAME as string,
+})()
 	.then(async maybeCfg => {
 		if (isLeft(maybeCfg)) {
 			console.error(maybeCfg.left.message)
 			process.exit(1)
 		}
 		const cfg = maybeCfg.right
-		const client = new Twilio(cfg.accountSID, cfg.restApiKey)
+		const client = new Twilio(cfg.apiKey, cfg.apiSecret, {
+			accountSid: cfg.accountSID,
+		})
 		const r = listRoles({ client, chatServiceSID: cfg.chatServiceSID })
 		const c = createServiceRole({ client, chatServiceSID: cfg.chatServiceSID })
 		const u = listUsers({ client, chatServiceSID: cfg.chatServiceSID })
+
+		console.log(
+			chalk.yellow('Chat service SID'),
+			chalk.cyan(cfg.chatServiceSID),
+		)
 
 		const roles = await r()
 
@@ -104,7 +114,7 @@ getTwilioSettings({ ssm: new SSM({ region: process.env.AWS_REGION }) })()
 				.services(cfg.chatServiceSID)
 				.roles(defaultServiceUserRole.sid)
 				.remove()
-			console.log(chalk.magenta('Default "service user" role not found.'))
+			console.log(chalk.magenta('Default "service user" role removed.'))
 		}
 		console.log('')
 		;(await r()).forEach(({ friendlyName, permissions }) => {

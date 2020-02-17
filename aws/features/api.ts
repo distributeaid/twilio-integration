@@ -28,7 +28,7 @@ const gqlLambda = (
 ): Function => {
 	const f = new Function(parent, `${field}${type}`, {
 		handler: 'index.handler',
-		runtime: Runtime.NODEJS_10_X,
+		runtime: Runtime.NODEJS_12_X,
 		timeout: Duration.seconds(30),
 		memorySize: 1792,
 		initialPolicy: [
@@ -44,7 +44,10 @@ const gqlLambda = (
 			}),
 			...policies,
 		],
-		environment,
+		environment: {
+			...environment,
+			STACK_NAME: stack.stackName,
+		},
 		layers: [baseLayer],
 		code: lambda,
 	})
@@ -128,8 +131,8 @@ export class ApiFeature extends Construct {
 				new PolicyStatement({
 					actions: ['ssm:GetParametersByPath'],
 					resources: [
-						`arn:aws:ssm:${stack.region}:${stack.account}:parameter/twilio`,
-						`arn:aws:ssm:${stack.region}:${stack.account}:parameter/chat`,
+						`arn:aws:ssm:${stack.region}:${stack.account}:parameter/${stack.stackName}/twilio`,
+						`arn:aws:ssm:${stack.region}:${stack.account}:parameter/${stack.stackName}/chat`,
 					],
 				}),
 				new PolicyStatement({
@@ -155,7 +158,7 @@ export class ApiFeature extends Construct {
 				new PolicyStatement({
 					actions: ['ssm:GetParametersByPath'],
 					resources: [
-						`arn:aws:ssm:${stack.region}:${stack.account}:parameter/chat`,
+						`arn:aws:ssm:${stack.region}:${stack.account}:parameter/${stack.stackName}/chat`,
 					],
 				}),
 			],

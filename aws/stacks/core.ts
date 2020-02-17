@@ -25,7 +25,7 @@ export class CoreStack extends Stack {
 
 		const baseLayer = new LayerVersion(this, `${id}-layer`, {
 			code: Code.bucket(sourceCodeBucket, baseLayerZipFileName),
-			compatibleRuntimes: [Runtime.NODEJS_10_X],
+			compatibleRuntimes: [Runtime.NODEJS_12_X],
 		})
 
 		this.eventsTopic = new SNS.Topic(this, 'eventsTopic', {
@@ -72,4 +72,9 @@ export class CoreStack extends Stack {
 			this.eventsTopic,
 		)
 	}
+}
+
+export type StackConfig = {
+	apiUrl: string
+	apiKey: string
 }

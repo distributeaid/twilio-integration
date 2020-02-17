@@ -3,14 +3,17 @@ import { getTwilioSettings } from '../appsync/getTwilioSettings'
 import * as Twilio from 'twilio'
 import { isLeft } from 'fp-ts/lib/Either'
 
-getTwilioSettings({ ssm: new SSM({ region: process.env.AWS_REGION }) })()
+getTwilioSettings({
+	ssm: new SSM({ region: process.env.AWS_REGION }),
+	scopePrefix: process.env.STACK_NAME as string,
+})()
 	.then(async maybeCfg => {
 		if (isLeft(maybeCfg)) {
 			console.error(maybeCfg.left.message)
 			process.exit(1)
 		}
 		const cfg = maybeCfg.right
-		const client = Twilio(cfg.accountSID, cfg.restApiKey)
+		const client = Twilio(cfg.accountSID, cfg.apiSecret)
 		return client.chat
 			.services(cfg.chatServiceSID)
 			.channels('general')

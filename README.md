@@ -1,6 +1,6 @@
 # Distribute Aid in-app-chat Twilio integration
 
-[![GitHub Actions](https://github.com/distributeaid/twilio-integration/workflows/Test%20and%20Release/badge.svg)](https://github.com/distributeaid/twilio-integration/actions)
+![Test and Release](https://github.com/distributeaid/twilio-integration/workflows/Test%20and%20Release/badge.svg)
 [![Greenkeeper badge](https://badges.greenkeeper.io/distributeaid/twilio-integration.svg)](https://greenkeeper.io/)
 [![semantic-release](https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg)](https://github.com/semantic-release/semantic-release)
 [![Commitizen friendly](https://img.shields.io/badge/commitizen-friendly-brightgreen.svg)](http://commitizen.github.io/cz-cli/)
@@ -16,11 +16,10 @@ Make sure your have AWS credentials in your environment.
 
 The Twilio API credentials need to be provided:
 
-    aws ssm put-parameter --name /twilio/apiKey --type String --value <API Key>
-    aws ssm put-parameter --name /twilio/apiSecret --type SecretString --value <API Secret>
-    aws ssm put-parameter --name /twilio/accountSID --type String --value <Account SID>
-    aws ssm put-parameter --name /twilio/chatServiceSID --type String --value <Chat Service SID>
-    aws ssm put-parameter --name /twilio/restApiKey --type SecretString --value <REST API Key>
+    aws ssm put-parameter --name /${STACK_NAME:-twilio-integration-dev}/twilio/apiKey --type String --value <API Key>
+    aws ssm put-parameter --name /${STACK_NAME:-twilio-integration-dev}/twilio/apiSecret --type SecureString --value <API Secret>
+    aws ssm put-parameter --name /${STACK_NAME:-twilio-integration-dev}/twilio/accountSID --type String --value <Account SID>
+    aws ssm put-parameter --name /${STACK_NAME:-twilio-integration-dev}/twilio/chatServiceSID --type String --value <Chat Service SID>
 
 If this is the run the first time in an account
 
@@ -30,10 +29,9 @@ Deploy the integration:
 
     npx cdk deploy
 
-## Tests
+Fix the default Twilio permissions:
 
-    export STACK_NAME=${STACK_NAME:-twilio-integration-dev}
-    npm test
+    node dist/scripts/fixPermissions.js
 
 ## Generating keypairs
 
@@ -77,7 +75,11 @@ Example:
 Register the URL with the integration:
 
     # disable URL resolution in the AWS CLI: aws configure set cli_follow_urlparam false
-    aws ssm put-parameter --name /chat/jwks.json --type String --value <URL>
+    aws ssm put-parameter --name /${STACK_NAME:-twilio-integration-dev}/chat/jwks.json --type String --value <URL>
 
 When verifying tokens, the integration will look up this URL to retrieve the
 public key.
+
+## Continuous Integration
+
+This project is continuously tested using a real instance.
