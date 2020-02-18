@@ -42,9 +42,9 @@ export const handler = async ({ Records }: SNSEvent) => {
 		console.error(JSON.stringify(maybeSettings.left))
 		return
 	}
-	const { accountSID, apiSecret, chatServiceSID } = maybeSettings.right
+	const { apiKey, accountSID, apiSecret, chatServiceSID } = maybeSettings.right
 
-	const client = new Twilio(accountSID, apiSecret)
+	const client = new Twilio(apiKey, apiSecret, { accountSid: accountSID })
 	const chatService = client.chat.services(chatServiceSID)
 
 	const maybeUser = await orElse<ErrorInfo, UserInstance, ErrorInfo>(() =>
