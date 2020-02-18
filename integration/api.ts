@@ -46,7 +46,7 @@ export const updateUserAttributes = (
 	)
 export const createUser = (chatService: ServiceContext) => (identity: string) =>
 	tryCatch<ErrorInfo, UserInstance>(async () => {
-		const u = chatService.users.create({
+		const u = await chatService.users.create({
 			identity,
 		})
 		console.log(`Created user "${identity}" in Twilio.`)

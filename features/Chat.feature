@@ -23,8 +23,9 @@ Feature: Chat
     Then the GQL query result should not contain errors
     And I store the GQL operation result as "chatToken"
 
-  Scenario: Join chat channel "general"
+  Scenario: Join chat channel "general" and post a new message
 
     Given I am authenticated against Twilio Chat with the token "{chatToken}"
-    When I have joined the channel "general"
-    Then I post the message "Hello World!" in the channel "general"
+    When I join the channel "general"
+    And I post the message "Hello World from {chatUserId}!" in the channel "general"
+    Then a message with the text "Hello World from {chatUserId}!" should exist in the channel "general"
