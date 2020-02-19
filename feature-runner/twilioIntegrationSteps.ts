@@ -15,14 +15,18 @@ export const twilioIntegrationSteps = ({
 	keyId: string
 }) => [
 	regexGroupMatcher(
-		/^I have a chat JWT for subject "(?<subject>[^"]+)" in "(?<storeName>[^"]+)"$/,
-	)(async ({ subject, storeName }, _, runner) => {
-		runner.store[storeName] = jwt.sign({ contexts: ['general'] }, privateKey, {
-			algorithm: 'ES256',
-			expiresIn: 24 * 60 * 60,
-			subject,
-			keyid: keyId,
-		})
+		/^I have a chat JWT for subject "(?<subject>[^"]+)"(?: and context "(?<context>[^"]+)")? in "(?<storeName>[^"]+)"$/,
+	)(async ({ subject, storeName, context }, _, runner) => {
+		runner.store[storeName] = jwt.sign(
+			{ contexts: [context || 'general'] },
+			privateKey,
+			{
+				algorithm: 'ES256',
+				expiresIn: 24 * 60 * 60,
+				subject,
+				keyid: keyId,
+			},
+		)
 	}),
 	regexGroupMatcher(
 		/^I am authenticated against Twilio Chat with the token "(?<chatToken>[^"]+)"$/,

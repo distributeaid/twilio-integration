@@ -1,7 +1,7 @@
-Feature: Chat
+Feature: Chat in the general channel
   As a user
-  I can join a channel
-  so I can chat
+  I can join the general channel
+  so I can chat with everyone
 
   Background:
 
