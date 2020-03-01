@@ -53,13 +53,18 @@ export class TwilioIntegrationTestExtrasStack extends Stack {
 				compatibleRuntimes: [Runtime.NODEJS_12_X],
 			}),
 		})
-		new CfnOutput(this, 'SendGridReceiverApiUrl', {
+		new CfnOutput(this, 'sendGridReceiverApiUrl', {
 			value: sendGridReceiver.api.url,
-			exportName: `${this.stackName}:SendGridReceiverApiUrl`,
+			exportName: `${this.stackName}:sendGridReceiverApiUrl`,
 		})
-		new CfnOutput(this, 'SendGridReceiverQueueURL', {
+		new CfnOutput(this, 'sendGridReceiverQueueURL', {
 			value: sendGridReceiver.queue.queueUrl,
-			exportName: `${this.stackName}:SendGridReceiverQueueURL`,
+			exportName: `${this.stackName}:sendGridReceiverQueueURL`,
 		})
 	}
+}
+
+export type StackConfig = {
+	sendGridReceiverApiUrl: string
+	sendGridReceiverQueueURL: string
 }

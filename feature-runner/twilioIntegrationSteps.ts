@@ -3,20 +3,16 @@ import { regexGroupMatcher } from '@coderbyheart/bdd-feature-runner-aws'
 import { Client } from 'twilio-chat'
 import { Channel } from 'twilio-chat/lib/channel'
 import { expect } from 'chai'
+import { World } from './run-features'
 
 let client: Client
 const channels = new Map<string, Channel>()
 
-export const twilioIntegrationSteps = ({
-	privateKey,
-	keyId,
-}: {
-	privateKey: string
-	keyId: string
-}) => [
-	regexGroupMatcher(
+export const twilioIntegrationSteps = () => [
+	regexGroupMatcher<World>(
 		/^I have a chat JWT for subject "(?<subject>[^"]+)"(?: and context "(?<context>[^"]+)")? in "(?<storeName>[^"]+)"$/,
 	)(async ({ subject, storeName, context }, _, runner) => {
+		const { privateKey, keyId } = runner.world
 		runner.store[storeName] = jwt.sign(
 			{ contexts: [context || 'general'] },
 			privateKey,
