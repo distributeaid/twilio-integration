@@ -15,7 +15,7 @@ export const handler = async (
 	},
 	context: Context,
 ) => {
-	console.log({ event })
+	console.log(JSON.stringify({ event }))
 	const maybeValid = await verify(event.token)
 	if (isLeft(maybeValid)) return GQLError(context, maybeValid.left)
 	return maybeValid.right

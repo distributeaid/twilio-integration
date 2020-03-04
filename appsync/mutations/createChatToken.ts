@@ -30,7 +30,7 @@ export const handler = async (
 	},
 	context: Context,
 ) => {
-	console.log({ event })
+	console.log(JSON.stringify({ event }))
 	const maybeValidToken = await verify(event.token)
 	if (isLeft(maybeValidToken)) return GQLError(context, maybeValidToken.left)
 
@@ -62,7 +62,7 @@ export const handler = async (
 			identity,
 			contexts,
 		}),
-	)
+	)()
 	if (isLeft(r)) {
 		console.error(`Failed to publish event: ${r.left.message}`)
 	}

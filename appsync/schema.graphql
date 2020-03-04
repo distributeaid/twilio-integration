@@ -1,5 +1,6 @@
 type Mutation {
     createChatToken(deviceId: ID!, token: ID!): ID!
+    enableChannelNotifications(channel: ID!, email: String!, token: ID!): ID!
 }
 
 type Query {

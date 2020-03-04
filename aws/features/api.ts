@@ -11,6 +11,7 @@ import {
 import { readFileSync } from 'fs'
 import * as path from 'path'
 import { GQLLambdaResolver } from '../resources/GQLLambdaResolver'
+import { TwilioNotificationFeature } from './twilio-notifications'
 
 const gqlLambda = (
 	parent: Construct,
@@ -73,9 +74,11 @@ export class ApiFeature extends Construct {
 		lambdas: {
 			createChatTokenMutation: Code
 			verifyTokenQuery: Code
+			enableChannelNotificationsMutation: Code
 		},
 		baseLayer: ILayerVersion,
 		eventsTopic: SNS.ITopic,
+		notificationFeature: TwilioNotificationFeature,
 	) {
 		super(stack, id)
 
@@ -141,6 +144,37 @@ export class ApiFeature extends Construct {
 				}),
 			],
 			{
+				SNS_EVENTS_TOPIC: eventsTopic.topicArn,
+			},
+		)
+
+		gqlLambda(
+			this,
+			stack,
+			baseLayer,
+			this.api,
+			schema,
+			'enableChannelNotifications',
+			'Mutation',
+			lambdas.enableChannelNotificationsMutation,
+			[
+				new PolicyStatement({
+					actions: ['dynamoDb:PutItem'],
+					resources: [notificationFeature.subscriptionsTable.tableArn],
+				}),
+				new PolicyStatement({
+					actions: ['ssm:GetParametersByPath'],
+					resources: [
+						`arn:aws:ssm:${stack.region}:${stack.account}:parameter/${stack.stackName}/chat`,
+					],
+				}),
+				new PolicyStatement({
+					actions: ['sns:Publish'],
+					resources: [eventsTopic.topicArn],
+				}),
+			],
+			{
+				SUBSCRIPTIONS_TABLE: notificationFeature.subscriptionsTable.tableName,
 				SNS_EVENTS_TOPIC: eventsTopic.topicArn,
 			},
 		)

@@ -5,6 +5,7 @@ import * as SNS from '@aws-cdk/aws-sns'
 import { TwilioIntegrationLayeredLambdas } from '../resources/lambdas'
 import { ApiFeature } from '../features/api'
 import { IntegrationFeature } from '../features/integration'
+import { TwilioNotificationFeature } from '../features/twilio-notifications'
 
 export class CoreStack extends Stack {
 	public readonly eventsTopic: SNS.ITopic
@@ -14,6 +15,7 @@ export class CoreStack extends Stack {
 		sourceCodeBucketName: string,
 		baseLayerZipFileName: string,
 		layeredLambdas: TwilioIntegrationLayeredLambdas,
+		isTest: boolean,
 	) {
 		super(parent, id)
 
@@ -32,6 +34,10 @@ export class CoreStack extends Stack {
 			displayName: `${id}-eventsTopic`,
 		})
 
+		const notifications = new TwilioNotificationFeature(this, 'notifications', {
+			isTest,
+		})
+
 		const api = new ApiFeature(
 			this,
 			'api',
@@ -44,9 +50,14 @@ export class CoreStack extends Stack {
 					sourceCodeBucket,
 					layeredLambdas.lambdaZipFileNames.verifyTokenQuery,
 				),
+				enableChannelNotificationsMutation: Code.bucket(
+					sourceCodeBucket,
+					layeredLambdas.lambdaZipFileNames.enableChannelNotificationsMutation,
+				),
 			},
 			baseLayer,
 			this.eventsTopic,
+			notifications,
 		)
 
 		new CfnOutput(this, 'apiUrl', {

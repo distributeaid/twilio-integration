@@ -29,6 +29,7 @@ import { stackName } from './stackName'
 			Bucket,
 		}),
 		layeredLambdas,
+		process.env.CI === '1',
 	).synth()
 })().catch(err => {
 	console.error(err.message)

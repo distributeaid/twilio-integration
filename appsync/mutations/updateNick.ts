@@ -33,7 +33,7 @@ export const handler = async (
 	},
 	context: Context,
 ) => {
-	console.log({ event })
+	console.log(JSON.stringify({ event }))
 	const maybeValidToken = await verify(event.token)
 	if (isLeft(maybeValidToken)) return GQLError(context, maybeValidToken.left)
 
@@ -53,7 +53,7 @@ export const handler = async (
 	const r = await pipe(
 		fetchUser(chatService)(identity),
 		TE.map(updateUserAttributes(chatService, { nick })),
-		TE.map(async () =>
+		TE.map(
 			pe(
 				NickUpdated({
 					identity,
