@@ -4,7 +4,7 @@ import * as Twilio from 'twilio'
 import { isLeft } from 'fp-ts/lib/Either'
 
 getTwilioSettings({
-	ssm: new SSM({ region: process.env.AWS_REGION }),
+	ssm: new SSM(),
 	scopePrefix: process.env.STACK_NAME as string,
 })()
 	.then(async maybeCfg => {

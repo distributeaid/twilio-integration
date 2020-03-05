@@ -13,16 +13,16 @@ import { pipe } from 'fp-ts/lib/pipeable'
 import { fetchUser, updateUserAttributes } from '../../integration/api'
 
 const fetchSettings = getTwilioSettings({
-	ssm: new SSM({ region: process.env.AWS_REGION }),
+	ssm: new SSM(),
 	scopePrefix: process.env.STACK_NAME as string,
 })
 let twilioSettings: Promise<Either<ErrorInfo, TwilioSettings>>
 const verify = verifyToken({
-	ssm: new SSM({ region: process.env.AWS_REGION }),
+	ssm: new SSM(),
 	scopePrefix: process.env.STACK_NAME as string,
 })
 const pe = publishEvent({
-	sns: new SNS({ region: process.env.AWS_REGION }),
+	sns: new SNS(),
 	topicArn: process.env.SNS_EVENTS_TOPIC || '',
 })
 

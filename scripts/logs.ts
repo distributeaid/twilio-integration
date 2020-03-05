@@ -2,8 +2,8 @@ import { CloudFormation, CloudWatchLogs } from 'aws-sdk'
 import * as chalk from 'chalk'
 import { stackName } from '../aws/stackName'
 
-const cf = new CloudFormation({ region: process.env.AWS_REGION })
-const logs = new CloudWatchLogs({ region: process.env.AWS_REGION })
+const cf = new CloudFormation()
+const logs = new CloudWatchLogs()
 
 const main = async () => {
 	const logGroups =

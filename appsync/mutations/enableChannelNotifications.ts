@@ -12,14 +12,14 @@ import { createSubscription } from '../../notifications/createSubscription'
 import { pipe } from 'fp-ts/lib/pipeable'
 
 const verify = verifyToken({
-	ssm: new SSM({ region: process.env.AWS_REGION }),
+	ssm: new SSM(),
 	scopePrefix: process.env.STACK_NAME as string,
 })
 const pe = publishEvent({
-	sns: new SNS({ region: process.env.AWS_REGION }),
+	sns: new SNS(),
 	topicArn: process.env.SNS_EVENTS_TOPIC || '',
 })
-const dynamodb = new DynamoDBClient({ region: process.env.AWS_REGION })
+const dynamodb = new DynamoDBClient({})
 
 const subscribe = createSubscription({
 	dynamodb,
