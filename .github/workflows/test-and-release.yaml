@@ -77,7 +77,7 @@ jobs:
           npx semantic-release
       - name: Get logs
         if: always()
-        run: node node dist/scripts/logs.js
+        run: node dist/scripts/logs.js
       - name: Clean up End-to-End test resources
         if: always()
         run: |
