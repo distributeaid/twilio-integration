@@ -2,7 +2,7 @@ import { S3 } from 'aws-sdk'
 import * as fs from 'fs'
 import * as path from 'path'
 
-const s3 = new S3({ region: process.env.AWS_DEFAULT_REGION })
+const s3 = new S3()
 const keyId = process.env.KEY_ID
 const Bucket = process.env.WEBSITE_BUCKET as string
 

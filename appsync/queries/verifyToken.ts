@@ -5,7 +5,7 @@ import { isLeft } from 'fp-ts/lib/Either'
 import { verifyToken } from '../verifyToken'
 
 const verify = verifyToken({
-	ssm: new SSM({ region: process.env.AWS_REGION }),
+	ssm: new SSM(),
 	scopePrefix: process.env.STACK_NAME as string,
 })
 
@@ -15,7 +15,7 @@ export const handler = async (
 	},
 	context: Context,
 ) => {
-	console.log({ event })
+	console.log(JSON.stringify({ event }))
 	const maybeValid = await verify(event.token)
 	if (isLeft(maybeValid)) return GQLError(context, maybeValid.left)
 	return maybeValid.right

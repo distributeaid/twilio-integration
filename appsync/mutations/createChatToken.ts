@@ -10,16 +10,16 @@ import { publishEvent } from '../publishEvent'
 import { ErrorInfo } from '../ErrorInfo'
 
 const fetchSettings = getTwilioSettings({
-	ssm: new SSM({ region: process.env.AWS_REGION }),
+	ssm: new SSM(),
 	scopePrefix: process.env.STACK_NAME as string,
 })
 let twilioSettings: Promise<Either<ErrorInfo, TwilioSettings>>
 const verify = verifyToken({
-	ssm: new SSM({ region: process.env.AWS_REGION }),
+	ssm: new SSM(),
 	scopePrefix: process.env.STACK_NAME as string,
 })
 const pe = publishEvent({
-	sns: new SNS({ region: process.env.AWS_REGION }),
+	sns: new SNS(),
 	topicArn: process.env.SNS_EVENTS_TOPIC || '',
 })
 
@@ -30,7 +30,7 @@ export const handler = async (
 	},
 	context: Context,
 ) => {
-	console.log({ event })
+	console.log(JSON.stringify({ event }))
 	const maybeValidToken = await verify(event.token)
 	if (isLeft(maybeValidToken)) return GQLError(context, maybeValidToken.left)
 
@@ -62,7 +62,7 @@ export const handler = async (
 			identity,
 			contexts,
 		}),
-	)
+	)()
 	if (isLeft(r)) {
 		console.error(`Failed to publish event: ${r.left.message}`)
 	}

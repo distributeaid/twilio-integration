@@ -1,0 +1,81 @@
+import * as CDK from '@aws-cdk/core'
+import * as SQS from '@aws-cdk/aws-sqs'
+import * as IAM from '@aws-cdk/aws-iam'
+import * as Logs from '@aws-cdk/aws-logs'
+import * as Lambda from '@aws-cdk/aws-lambda'
+import * as ApiGateway from '@aws-cdk/aws-apigateway'
+
+/**
+ * Sets up resources to receive emails via SendGrids' Email Parse feature: https://sendgrid.com/docs/API_Reference/Parse_Webhook/inbound_email.html
+ */
+export class SendGridReceiver extends CDK.Construct {
+	public readonly queue: SQS.Queue
+	public readonly api: ApiGateway.RestApi
+
+	constructor(
+		parent: CDK.Stack,
+		id: string,
+		{
+			sendGridReceiverLambda,
+			baseLayer,
+		}: {
+			sendGridReceiverLambda: Lambda.Code
+			baseLayer: Lambda.ILayerVersion
+		},
+	) {
+		super(parent, id)
+
+		// This queue will store all the emails received by SendGrid
+		this.queue = new SQS.Queue(this, 'queue', {
+			fifo: true,
+			visibilityTimeout: CDK.Duration.seconds(5),
+			queueName: `${`${id}-${parent.stackName}`.substr(0, 75)}.fifo`,
+		})
+
+		// This lambda will publish all requests made to the API Gateway in the queue
+		const lambda = new Lambda.Function(this, 'Lambda', {
+			description: 'Publishes webhook requests into SQS',
+			code: sendGridReceiverLambda,
+			layers: [baseLayer],
+			handler: 'index.handler',
+			runtime: Lambda.Runtime.NODEJS_12_X,
+			timeout: CDK.Duration.seconds(15),
+			initialPolicy: [
+				new IAM.PolicyStatement({
+					resources: ['arn:aws:logs:*:*:*'],
+					actions: [
+						'logs:CreateLogGroup',
+						'logs:CreateLogStream',
+						'logs:PutLogEvents',
+					],
+				}),
+				new IAM.PolicyStatement({
+					resources: [this.queue.queueArn],
+					actions: ['sqs:SendMessage'],
+				}),
+			],
+			environment: {
+				SQS_QUEUE: this.queue.queueUrl,
+			},
+		})
+		// Create the log group here, so we can control the retention
+		new Logs.LogGroup(this, `LambdaLogGroup`, {
+			removalPolicy: CDK.RemovalPolicy.DESTROY,
+			logGroupName: `/aws/lambda/${lambda.functionName}`,
+			retention: Logs.RetentionDays.ONE_DAY,
+		})
+
+		// This is the API Gateway, AWS CDK automatically creates a prod stage and deployment
+		this.api = new ApiGateway.RestApi(this, 'api', {
+			restApiName: 'Webhook Receiver API',
+			description: 'API Gateway to test webhook deliveries',
+		})
+		const proxyResource = this.api.root.addResource('{proxy+}')
+		proxyResource.addMethod('ANY', new ApiGateway.LambdaIntegration(lambda))
+		// API Gateway needs to be able to call the lambda
+		lambda.addPermission('InvokeByApiGateway', {
+			principal: new IAM.ServicePrincipal('apigateway.amazonaws.com'),
+			sourceArn: this.api.arnForExecuteApi(),
+		})
+	}
+}

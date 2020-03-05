@@ -70,6 +70,7 @@
     "io-ts": "^2.1.2",
     "jsonwebtoken": "^8.5.1",
     "node-fetch": "^2.6.0",
+    "parse-multipart-data": "^1.0.0",
     "twilio": "^3.39.5",
     "uuid": "^7.0.1"
   },

@@ -1,6 +1,7 @@
 export enum EventName {
 	ChatTokenCreated = 'ChatTokenCreated',
 	NickUpdated = 'NickUpdated',
+	ChannelSubscriptionCreated = 'ChannelSubscriptionCreated',
 }
 
 export type Event = {
@@ -28,5 +29,21 @@ export const NickUpdated = (
 	eventPayload: NickUpdatedEventPayload,
 ): NickUpdatedEvent => ({
 	eventName: EventName.NickUpdated,
+	eventPayload,
+})
+
+type ChannelSubscriptionCreatedEventPayload = {
+	uuid: string
+	identity: string
+	channel: string
+	email: string
+}
+export type ChannelSubscriptionCreatedEvent = EventWithPayload<
+	ChannelSubscriptionCreatedEventPayload
+>
+export const ChannelSubscriptionCreated = (
+	eventPayload: ChannelSubscriptionCreatedEventPayload,
+): ChannelSubscriptionCreatedEvent => ({
+	eventName: EventName.ChannelSubscriptionCreated,
 	eventPayload,
 })

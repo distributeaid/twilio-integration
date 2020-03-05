@@ -41,7 +41,7 @@ const listUsers = ({
 }) => async () => client.chat.services(chatServiceSID).users.list()
 
 getTwilioSettings({
-	ssm: new SSM({ region: process.env.AWS_REGION }),
+	ssm: new SSM(),
 	scopePrefix: process.env.STACK_NAME as string,
 })()
 	.then(async maybeCfg => {

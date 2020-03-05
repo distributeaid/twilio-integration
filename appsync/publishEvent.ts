@@ -35,7 +35,7 @@ export const publishEvent = ({
 }: {
 	sns: SNS
 	topicArn: string
-}) => async (event: Event | EventWithPayload) =>
+}) => (event: Event | EventWithPayload) => async () =>
 	tryCatch<ErrorInfo, void>(async () => {
 		await sns
 			.publish({

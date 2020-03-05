@@ -19,7 +19,7 @@ import {
 } from './api'
 
 const fetchSettings = getTwilioSettings({
-	ssm: new SSM({ region: process.env.AWS_REGION }),
+	ssm: new SSM(),
 	scopePrefix: process.env.STACK_NAME as string,
 })
 let twilioSettings: Promise<Either<ErrorInfo, TwilioSettings>>

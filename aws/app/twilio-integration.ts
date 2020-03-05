@@ -8,6 +8,7 @@ export class TwilioIntegrationApp extends App {
 		sourceCodeBucketName: string,
 		baseLayerZipFileName: string,
 		layeredLambdas: TwilioIntegrationLayeredLambdas,
+		isTest: boolean,
 	) {
 		super()
 
@@ -17,6 +18,7 @@ export class TwilioIntegrationApp extends App {
 			sourceCodeBucketName,
 			baseLayerZipFileName,
 			layeredLambdas,
+			isTest,
 		)
 	}
 }
