@@ -55,6 +55,10 @@ jobs:
           aws ssm put-parameter --name /$STACK_NAME/twilio/accountSID --type String --value $TWILIO_ACCOUNT_SID
           aws ssm put-parameter --name /$STACK_NAME/twilio/chatServiceSID --type String --value $TWILIO_CHAT_SERVICE_SID
           node dist/scripts/fixPermissions.js
+      - name: Configure SendGrid
+        run: |
+          aws ssm put-parameter --name /$STACK_NAME/sendgrid/apiKey --type String --value $SENDGRID_API_KEY
+          aws ssm put-parameter --name /$STACK_NAME/sendgrid/domain --type String --value $SENDGRID_DOMAIN
       - name: Create and publish JWT keypair
         run: |
           KEY_ID=`uuidgen`
@@ -93,4 +97,11 @@ jobs:
           # Delete the sourceode stack
           npx cdk -a 'node dist/aws/cloudformation-sourcecode.js' destroy -f '*'
           # Delete SSM Parameters
-          aws ssm delete-parameters --names /$STACK_NAME/twilio/apiKey /$STACK_NAME/twilio/apiSecret /$STACK_NAME/twilio/accountSID /$STACK_NAME/twilio/chatServiceSID /$STACK_NAME/chat/jwks.json
+          aws ssm delete-parameters --names \
+            /$STACK_NAME/twilio/apiKey \
+            /$STACK_NAME/twilio/apiSecret \
+            /$STACK_NAME/twilio/accountSID \
+            /$STACK_NAME/twilio/chatServiceSID \
+            /$STACK_NAME/sendgrid/apiKey \
+            /$STACK_NAME/sendgrid/domain \
+            /$STACK_NAME/chat/jwks.json

@@ -15,10 +15,15 @@ Make sure your have AWS credentials in your environment.
 
 The Twilio API credentials need to be provided:
 
-    aws ssm put-parameter --name /${STACK_NAME:-twilio-integration-dev}/twilio/apiKey --type String --value <API Key>
+    aws ssm put-parameter --name /${STACK_NAME:-twilio-integration-dev}/twilio/apiKey --type String --value <Twilio API Key>
     aws ssm put-parameter --name /${STACK_NAME:-twilio-integration-dev}/twilio/apiSecret --type SecureString --value <API Secret>
     aws ssm put-parameter --name /${STACK_NAME:-twilio-integration-dev}/twilio/accountSID --type String --value <Account SID>
     aws ssm put-parameter --name /${STACK_NAME:-twilio-integration-dev}/twilio/chatServiceSID --type String --value <Chat Service SID>
+
+The SendGrid API credentials need to be provided:
+
+    aws ssm put-parameter --name /${STACK_NAME:-twilio-integration-dev}/sendgrid/apiKey --type String --value <SendGrid API Key>
+    aws ssm put-parameter --name /${STACK_NAME:-twilio-integration-dev}/sendgrid/domain --type String --value <SendGrid Domain>
 
 If this is the run the first time in an account
 

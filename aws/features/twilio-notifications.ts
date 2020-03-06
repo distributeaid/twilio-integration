@@ -1,17 +1,22 @@
-import * as CloudFormation from '@aws-cdk/core'
-
+import * as CDK from '@aws-cdk/core'
 import * as DynamoDB from '@aws-cdk/aws-dynamodb'
+import * as SNS from '@aws-cdk/aws-sns'
+import * as Lambda from '@aws-cdk/aws-lambda'
+import * as IAM from '@aws-cdk/aws-iam'
+import * as Logs from '@aws-cdk/aws-logs'
+import { EventName } from '../../events/events'
 
-export class TwilioNotificationFeature extends CloudFormation.Construct {
+export class TwilioNotificationFeature extends CDK.Construct {
 	public readonly subscriptionsTable: DynamoDB.Table
 	constructor(
-		stack: CloudFormation.Stack,
+		stack: CDK.Stack,
 		id: string,
-		{
-			isTest,
-		}: {
-			isTest: boolean
+		isTest: boolean,
+		lambdas: {
+			confirmEmailSubscription: Lambda.Code
 		},
+		baseLayer: Lambda.ILayerVersion,
+		eventsTopic: SNS.ITopic,
 	) {
 		super(stack, id)
 		this.subscriptionsTable = new DynamoDB.Table(this, 'sunbscriptionsTable', {
@@ -26,8 +31,8 @@ export class TwilioNotificationFeature extends CloudFormation.Construct {
 			},
 			pointInTimeRecovery: true,
 			removalPolicy: isTest
-				? CloudFormation.RemovalPolicy.DESTROY
-				: CloudFormation.RemovalPolicy.RETAIN,
+				? CDK.RemovalPolicy.DESTROY
+				: CDK.RemovalPolicy.RETAIN,
 		})
 
 		const SUBSCRIPTION_TABLE_CHANNEL_EMAIL_INDEX =
@@ -45,6 +50,54 @@ export class TwilioNotificationFeature extends CloudFormation.Construct {
 			},
 			projectionType: DynamoDB.ProjectionType.INCLUDE,
 			nonKeyAttributes: ['confirmed'],
+		})
+
+		const confirmEmailSubscriptionLambda = new Lambda.Function(
+			this,
+			`confirmEmailSubscriptionLambda`,
+			{
+				handler: 'index.handler',
+				runtime: Lambda.Runtime.NODEJS_12_X,
+				timeout: CDK.Duration.seconds(30),
+				memorySize: 1792,
+				initialPolicy: [
+					new IAM.PolicyStatement({
+						actions: [
+							'logs:CreateLogGroup',
+							'logs:CreateLogStream',
+							'logs:PutLogEvents',
+						],
+						resources: [
+							`arn:aws:logs:${stack.region}:${stack.account}:/aws/lambda/*`,
+						],
+					}),
+					new IAM.PolicyStatement({
+						actions: ['ssm:GetParametersByPath'],
+						resources: [
+							`arn:aws:ssm:${stack.region}:${stack.account}:parameter/${stack.stackName}/sendgrid`,
+						],
+					}),
+				],
+				layers: [baseLayer],
+				code: lambdas.confirmEmailSubscription,
+			},
+		)
+
+		new Logs.LogGroup(this, `confirmEmailSubscriptionLambdaLogGroup`, {
+			removalPolicy: CDK.RemovalPolicy.DESTROY,
+			logGroupName: `/aws/lambda/${confirmEmailSubscriptionLambda.functionName}`,
+			retention: Logs.RetentionDays.ONE_WEEK,
+		})
+
+		new SNS.Subscription(this, 'ChannelSubscriptionCreatedSubscription', {
+			topic: eventsTopic,
+			endpoint: confirmEmailSubscriptionLambda.functionArn,
+			protocol: SNS.SubscriptionProtocol.LAMBDA,
+			filterPolicy: {
+				name: SNS.SubscriptionFilter.stringFilter({
+					whitelist: [EventName.ChannelSubscriptionCreated],
+				}),
+			},
 		})
 	}
 }

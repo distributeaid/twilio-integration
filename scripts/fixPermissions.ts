@@ -1,5 +1,5 @@
 import { SSM } from 'aws-sdk'
-import { getTwilioSettings } from '../appsync/getTwilioSettings'
+import { getTwilioSettings } from '../twilio/getTwilioSettings'
 import { Twilio } from 'twilio'
 import { isLeft } from 'fp-ts/lib/Either'
 import * as chalk from 'chalk'

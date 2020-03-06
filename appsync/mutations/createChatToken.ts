@@ -1,6 +1,9 @@
 import { Context } from 'aws-lambda'
 import { jwt } from 'twilio'
-import { getTwilioSettings, TwilioSettings } from '../getTwilioSettings'
+import {
+	getTwilioSettings,
+	TwilioSettings,
+} from '../../twilio/getTwilioSettings'
 import { SSM, SNS } from 'aws-sdk'
 import { GQLError } from '../GQLError'
 import { Either, isLeft } from 'fp-ts/lib/Either'

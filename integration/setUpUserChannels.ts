@@ -1,5 +1,5 @@
 import { Twilio } from 'twilio'
-import { TwilioSettings, getTwilioSettings } from '../appsync/getTwilioSettings'
+import { TwilioSettings, getTwilioSettings } from '../twilio/getTwilioSettings'
 import { orElse } from 'fp-ts/lib/TaskEither'
 import { Either } from 'fp-ts/lib/Either'
 import { UserInstance } from 'twilio/lib/rest/chat/v2/service/user'
