@@ -100,5 +100,10 @@ export class TwilioNotificationFeature extends CDK.Construct {
 				}),
 			},
 		})
+
+		confirmEmailSubscriptionLambda.addPermission('InvokeBySNS', {
+			principal: new IAM.ServicePrincipal('sns.amazonaws.com'),
+			sourceArn: eventsTopic.topicArn,
+		})
 	}
 }
