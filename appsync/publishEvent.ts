@@ -37,6 +37,12 @@ export const publishEvent = ({
 	topicArn: string
 }) => (event: Event | EventWithPayload) => async () =>
 	tryCatch<ErrorInfo, void>(async () => {
+		console.log(
+			JSON.stringify({
+				event,
+				topicArn,
+			}),
+		)
 		await sns
 			.publish({
 				Message: JSON.stringify(event),
