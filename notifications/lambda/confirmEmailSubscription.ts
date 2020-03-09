@@ -6,6 +6,7 @@ import {
 	getSendGridSettings,
 	SendGridSettings,
 } from '../../sendgrid/getSendGridSettings'
+import { ChannelSubscriptionCreatedEvent } from '../../events/events'
 
 const fetchSettings = getSendGridSettings({
 	ssm: new SSM(),
@@ -25,9 +26,21 @@ export const handler = async (event: SNSEvent, _: Context) => {
 	}
 	const { apiKey, domain } = maybeSettings.right
 	console.log({
-		apiKey,
+		apiKey: apiKey.substr(0, 5) + '*****',
 		domain,
 	})
 
+	const apiEvent = JSON.parse(
+		event.Records[0].Sns.Message,
+	) as ChannelSubscriptionCreatedEvent
+	const { email, uuid } = apiEvent.eventPayload
+	console.log({
+		email,
+		uuid,
+	})
+
 	// FIXME: Send email with confirmation link
+	console.error(
+		`FIXME: Implement sending email to ${email} to confirm subscription ${uuid}!`,
+	)
 }

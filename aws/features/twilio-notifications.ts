@@ -81,6 +81,9 @@ export class TwilioNotificationFeature extends CDK.Construct {
 				],
 				layers: [baseLayer],
 				code: lambdas.confirmEmailSubscription,
+				environment: {
+					STACK_NAME: stack.stackName,
+				},
 			},
 		)
 
