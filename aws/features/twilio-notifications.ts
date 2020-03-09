@@ -60,6 +60,7 @@ export class TwilioNotificationFeature extends CDK.Construct {
 				runtime: Lambda.Runtime.NODEJS_12_X,
 				timeout: CDK.Duration.seconds(30),
 				memorySize: 1792,
+				description: 'Sends an email to the user to confirm their subscription',
 				initialPolicy: [
 					new IAM.PolicyStatement({
 						actions: [

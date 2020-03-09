@@ -34,7 +34,7 @@ export class SendGridReceiver extends CDK.Construct {
 
 		// This lambda will publish all requests made to the API Gateway in the queue
 		const lambda = new Lambda.Function(this, 'Lambda', {
-			description: 'Publishes webhook requests into SQS',
+			description: `Receives WebHooks from SendGrid's Email Parse Service`,
 			code: sendGridReceiverLambda,
 			layers: [baseLayer],
 			handler: 'index.handler',
