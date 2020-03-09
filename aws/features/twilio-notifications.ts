@@ -91,11 +91,11 @@ export class TwilioNotificationFeature extends CDK.Construct {
 		})
 
 		new SNS.Subscription(this, 'ChannelSubscriptionCreatedSubscription', {
-			topic: eventsTopic,
-			endpoint: confirmEmailSubscriptionLambda.functionArn,
 			protocol: SNS.SubscriptionProtocol.LAMBDA,
+			endpoint: confirmEmailSubscriptionLambda.functionArn,
+			topic: eventsTopic,
 			filterPolicy: {
-				name: SNS.SubscriptionFilter.stringFilter({
+				eventName: SNS.SubscriptionFilter.stringFilter({
 					whitelist: [EventName.ChannelSubscriptionCreated],
 				}),
 			},
