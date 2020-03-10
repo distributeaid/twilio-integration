@@ -28,6 +28,20 @@ Feature: Enabled email notifications
             """
         Then the GQL query result should not contain errors
 
+    @Retry=failAfter:3,maxDelay:10000,initialDelay:5000
+    Scenario: Receive the verification link and verify the ownership of the email
+
+        Given I have a Webhook Receiver
+        Then the Webhook Receiver "{testEmailDomain:id}" should be called
+        And the webhook request body should match this JSON
+            """
+            {
+                "to": "chatuser-{chatUserId}@{testEmailDomain}",
+                "from": "DistributeAid Chat <toolbox@{sendGridDomainName}>",
+                "subject": "[DistributeAid] Please confirm your chat notifications"
+            }
+            """
+
 #    Scenario: Receive the verification link and verify the ownership of the email
 #
 #        When I receive an email for "chatuser-{chatUserId}@{testEmailDomain}"

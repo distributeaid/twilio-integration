@@ -9,16 +9,6 @@ export const handler = async (
 	event: APIGatewayProxyEvent,
 ): Promise<APIGatewayProxyResult> => {
 	console.log(JSON.stringify({ event }))
-	const MessageAttributes = Object.keys(event.headers || {})
-		.filter(key => !/^(CloudFront-|X-|Host|Via)/.test(key))
-		.slice(0, 10) // max number of MessageAttributes is 10
-		.reduce((hdrs, key) => {
-			hdrs[key] = {
-				DataType: 'String',
-				StringValue: event.headers[key],
-			}
-			return hdrs
-		}, {} as SQS.MessageBodyAttributeMap)
 
 	const boundary = event.headers['Content-Type']
 		.split(';')[1]
@@ -40,15 +30,18 @@ export const handler = async (
 	fields.envelope = JSON.parse(fields.envelope)
 	fields.charsets = JSON.parse(fields.charsets)
 
-	console.log(JSON.stringify({ fields }))
-	return sqs
-		.sendMessage({
-			MessageBody: JSON.stringify(fields),
-			MessageAttributes: MessageAttributes || {},
-			QueueUrl,
-			MessageGroupId: event.path.substr(1),
-			MessageDeduplicationId: event.requestContext.requestId,
-		})
-		.promise()
-		.then(() => ({ statusCode: 202, body: '' }))
+	console.log(JSON.stringify(fields))
+
+	const args = {
+		MessageBody: JSON.stringify(fields),
+		QueueUrl,
+		MessageGroupId: event.path.substr(1),
+		MessageDeduplicationId: event.requestContext.requestId,
+	}
+
+	await sqs.sendMessage(args).promise()
+
+	console.log(JSON.stringify(args))
+
+	return { statusCode: 202, body: '' }
 }

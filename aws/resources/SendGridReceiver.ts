@@ -28,7 +28,7 @@ export class SendGridReceiver extends CDK.Construct {
 		// This queue will store all the emails received by SendGrid
 		this.queue = new SQS.Queue(this, 'queue', {
 			fifo: true,
-			visibilityTimeout: CDK.Duration.seconds(5),
+			visibilityTimeout: CDK.Duration.minutes(5),
 			queueName: `${`${id}-${parent.stackName}`.substr(0, 75)}.fifo`,
 		})
 
