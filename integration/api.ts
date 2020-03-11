@@ -46,12 +46,19 @@ export const updateUserAttributes = (
 	)
 export const createUser = (chatService: ServiceContext) => (identity: string) =>
 	tryCatch<ErrorInfo, UserInstance>(async () => {
-		const u = await chatService.users.create({
-			identity,
-		})
-		console.log(`Created user "${identity}" in Twilio.`)
-		console.log(JSON.stringify({ user: u }))
-		return u
+		try {
+			const u = await chatService.users.create({
+				identity,
+			})
+			console.log(`Created user "${identity}" in Twilio.`)
+			console.log(JSON.stringify({ user: u }))
+			return u
+		} catch (error) {
+			if (error.message === 'User already exists') {
+				return chatService.users(identity).fetch()
+			}
+			throw error
+		}
 	}, ToErrorInfo(`Creating user "${identity}" in Twilio.`))
 
 export const joinChannel = (chatService: ServiceContext) => ({
