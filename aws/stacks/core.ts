@@ -34,9 +34,19 @@ export class CoreStack extends Stack {
 			displayName: `${id}-eventsTopic`,
 		})
 
-		const notifications = new TwilioNotificationFeature(this, 'notifications', {
+		const notifications = new TwilioNotificationFeature(
+			this,
+			'notifications',
 			isTest,
-		})
+			{
+				confirmEmailSubscription: Code.bucket(
+					sourceCodeBucket,
+					layeredLambdas.lambdaZipFileNames.confirmEmailSubscription,
+				),
+			},
+			baseLayer,
+			this.eventsTopic,
+		)
 
 		const api = new ApiFeature(
 			this,

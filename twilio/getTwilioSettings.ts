@@ -1,9 +1,10 @@
 import { SSM } from 'aws-sdk'
-import { getSettings } from './getSettings'
+import { getSettings } from '../appsync/getSettings'
 import * as TE from 'fp-ts/lib/TaskEither'
 import { pipe } from 'fp-ts/lib/pipeable'
-import { ErrorType } from './ErrorInfo'
-import { isNone, Some, Option } from 'fp-ts/lib/Option'
+import { ErrorType } from '../appsync/ErrorInfo'
+import { isNone } from 'fp-ts/lib/Option'
+import { unwrapOptionalKeys } from '../feature-runner/unwrapOptionalKeys'
 
 export type TwilioSettings = {
 	apiKey: string
@@ -11,15 +12,6 @@ export type TwilioSettings = {
 	accountSID: string
 	chatServiceSID: string
 }
-
-const unwrapOptionalKeys = <A>(o: { [key: string]: Option<unknown> }) =>
-	Object.entries(o).reduce(
-		(o, [k, v]) => ({
-			...o,
-			[k]: (v as Some<unknown>).value,
-		}),
-		{} as A,
-	)
 
 export const getTwilioSettings = ({
 	ssm,

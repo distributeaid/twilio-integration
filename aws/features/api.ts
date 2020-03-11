@@ -32,6 +32,7 @@ const gqlLambda = (
 		runtime: Runtime.NODEJS_12_X,
 		timeout: Duration.seconds(30),
 		memorySize: 1792,
+		description: `AppSync handler lambda for the ${field} ${type}`,
 		initialPolicy: [
 			new PolicyStatement({
 				actions: [

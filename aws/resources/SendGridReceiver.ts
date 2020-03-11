@@ -28,13 +28,13 @@ export class SendGridReceiver extends CDK.Construct {
 		// This queue will store all the emails received by SendGrid
 		this.queue = new SQS.Queue(this, 'queue', {
 			fifo: true,
-			visibilityTimeout: CDK.Duration.seconds(5),
+			visibilityTimeout: CDK.Duration.minutes(5),
 			queueName: `${`${id}-${parent.stackName}`.substr(0, 75)}.fifo`,
 		})
 
 		// This lambda will publish all requests made to the API Gateway in the queue
 		const lambda = new Lambda.Function(this, 'Lambda', {
-			description: 'Publishes webhook requests into SQS',
+			description: `Receives WebHooks from SendGrid's Email Parse Service`,
 			code: sendGridReceiverLambda,
 			layers: [baseLayer],
 			handler: 'index.handler',

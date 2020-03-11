@@ -5,6 +5,7 @@ import {
 	appSyncStepRunners,
 	appSyncAfterAll,
 	appSyncBeforeAll,
+	webhookStepRunners,
 } from '@coderbyheart/bdd-feature-runner-aws'
 import * as chalk from 'chalk'
 import * as program from 'commander'
@@ -29,6 +30,7 @@ export type World = {
 	sendGridReceiverQueueURL: string
 	keyId: string
 	privateKey: string
+	webhookQueue: string
 }
 
 const region = process.env.AWS_REGION || ''
@@ -80,6 +82,7 @@ program
 				sendGridReceiverQueueURL: testStackConfig.sendGridReceiverQueueURL,
 				keyId,
 				privateKey,
+				webhookQueue: testStackConfig.sendGridReceiverQueueURL,
 			}
 
 			console.log(chalk.yellow.bold(' World:'))
@@ -103,6 +106,9 @@ program
 				.addStepRunners(twilioIntegrationSteps())
 				.addStepRunners(uuidHelper())
 				.addStepRunners(sendGridSteps())
+				.addStepRunners(
+					webhookStepRunners<World>({ region }),
+				)
 				.run()
 			await appSyncAfterAll(runner)
 			await sendGridAfterAll(runner)

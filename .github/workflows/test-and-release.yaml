@@ -14,14 +14,14 @@ env:
   TWILIO_API_KEY: ${{ secrets.TWILIO_API_KEY }}
   TWILIO_API_SECRET: ${{ secrets.TWILIO_API_SECRET }}
   TWILIO_ACCOUNT_SID: ${{ secrets.TWILIO_ACCOUNT_SID }}
-  TWILIO_CHAT_SERVICE_SID: ${{ secrets.TWILIO_CHAT_SERVICE_SID }}
+  TWILIO_AUTH_TOKEN: ${{ secrets.TWILIO_AUTH_TOKEN }}
   SENDGRID_API_KEY: ${{ secrets.SENDGRID_API_KEY }}
   SENDGRID_DOMAIN: ${{ secrets.SENDGRID_DOMAIN }}
 
 jobs:
   tests:
+    timeout-minutes: 60
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v1
       - uses: actions/setup-node@v1
@@ -42,42 +42,60 @@ jobs:
         run: npm ci
       - name: Build
         run: npx tsc
+      - name: Create Twilio Chat Service
+        run: |
+          curl -s -X POST https://chat.twilio.com/v2/Services \
+            --data-urlencode "FriendlyName=test-${{ github.sha }}" \
+            -u $TWILIO_ACCOUNT_SID:$TWILIO_AUTH_TOKEN > chat.json
+          cat chat.json | jq '.sid'
       - name: Set up stack for End-to-End tests
         run: |
           npx cdk -a 'node dist/aws/cloudformation-sourcecode.js' deploy
           npx cdk bootstrap
           npx cdk deploy --require-approval never
           npx cdk -a 'node dist/aws/cloudformation-test-extras.js' deploy --require-approval never
-      - name: Configure Twilio
+      - name: Provide Twilio Settings to Stack
         run: |
           aws ssm put-parameter --name /$STACK_NAME/twilio/apiKey --type String --value $TWILIO_API_KEY
           aws ssm put-parameter --name /$STACK_NAME/twilio/apiSecret --type SecureString --value $TWILIO_API_SECRET
           aws ssm put-parameter --name /$STACK_NAME/twilio/accountSID --type String --value $TWILIO_ACCOUNT_SID
+          TWILIO_CHAT_SERVICE_SID=`cat chat.json | jq -r '.sid'`
           aws ssm put-parameter --name /$STACK_NAME/twilio/chatServiceSID --type String --value $TWILIO_CHAT_SERVICE_SID
-          node dist/scripts/fixPermissions.js
+      - name: Configure Twilio Chat Service
+        run: node dist/scripts/fixPermissions.js
+      - name: Configure SendGrid
+        run: |
+          aws ssm put-parameter --name /$STACK_NAME/sendgrid/apiKey --type String --value $SENDGRID_API_KEY
+          aws ssm put-parameter --name /$STACK_NAME/sendgrid/domain --type String --value $SENDGRID_DOMAIN
       - name: Create and publish JWT keypair
         run: |
-          KEY_ID=`uuidgen`
+          export KEY_ID=`uuidgen`
           echo -n $KEY_ID > .keyid
           openssl ecparam -genkey -name secp256r1 -noout -out ecdsa-p256-${KEY_ID}-private.pem
           openssl ec -in ecdsa-p256-${KEY_ID}-private.pem -pubout -out ecdsa-p256-${KEY_ID}-public.pem
-          WEBSITE_BUCKET=`aws cloudformation describe-stacks --stack-name $STACK_NAME-test-extras | jq -r '.Stacks[0].Outputs[] | select(.OutputKey=="bucketName") | .OutputValue'`
+          export WEBSITE_BUCKET=`aws cloudformation describe-stacks --stack-name $STACK_NAME-test-extras | jq -r '.Stacks[0].Outputs[] | select(.OutputKey=="bucketName") | .OutputValue'`
           node dist/scripts/publish-test-key.js
           WEBSITE_URL=`aws cloudformation describe-stacks --stack-name $STACK_NAME-test-extras | jq -r '.Stacks[0].Outputs[] | select(.OutputKey=="bucketWebsiteUrl") | .OutputValue'`
           aws configure set cli_follow_urlparam false
           aws ssm put-parameter --name /$STACK_NAME/chat/jwks.json --type String --value $WEBSITE_URL/.well-known/jwks.json
       - name: End-to-End Tests
         run: |
-          KEY_ID=`cat .keyid`
+          export KEY_ID=`cat .keyid`
           npm run test:e2e
+      - name: Get logs
+        if: failure()
+        run: node dist/scripts/logs.js
       - name: Semantic release
-        continue-on-error: true
+        if: success() && github.ref == 'saga'
         run: |
           npm i --no-save semantic-release
           npx semantic-release
-      - name: Get logs
+      - name: Delete Twilio Chat Instance
         if: always()
-        run: node dist/scripts/logs.js
+        run: |
+          TWILIO_CHAT_SERVICE_SID=`cat chat.json | jq -r '.sid'`  
+          curl -s -X DELETE https://chat.twilio.com/v2/Services/$TWILIO_CHAT_SERVICE_SID \
+            -u $TWILIO_ACCOUNT_SID:$TWILIO_AUTH_TOKEN
       - name: Clean up End-to-End test resources
         if: always()
         run: |
@@ -88,9 +106,16 @@ jobs:
           # Delete the test-extras stack
           npx cdk -a 'node dist/aws/cloudformation-test-extras.js' destroy -f '*'
           # Delete sourcecode bucket
-          SOURCE_CODE_BUCKET=`aws cloudformation describe-stacks --stack-name $STACK_ID-sourcecode | jq -r '.Stacks[0].Outputs[] | select(.OutputKey == "bucketName") | .OutputValue'`
+          SOURCE_CODE_BUCKET=`aws cloudformation describe-stacks --stack-name $STACK_NAME-sourcecode | jq -r '.Stacks[0].Outputs[] | select(.OutputKey == "bucketName") | .OutputValue'`
           aws s3 rb s3://$SOURCE_CODE_BUCKET --force
           # Delete the sourceode stack
           npx cdk -a 'node dist/aws/cloudformation-sourcecode.js' destroy -f '*'
           # Delete SSM Parameters
-          aws ssm delete-parameters --names /$STACK_NAME/twilio/apiKey /$STACK_NAME/twilio/apiSecret /$STACK_NAME/twilio/accountSID /$STACK_NAME/twilio/chatServiceSID /$STACK_NAME/chat/jwks.json
+          aws ssm delete-parameters --names \
+            /$STACK_NAME/twilio/apiKey \
+            /$STACK_NAME/twilio/apiSecret \
+            /$STACK_NAME/twilio/accountSID \
+            /$STACK_NAME/twilio/chatServiceSID \
+            /$STACK_NAME/sendgrid/apiKey \
+            /$STACK_NAME/sendgrid/domain \
+            /$STACK_NAME/chat/jwks.json

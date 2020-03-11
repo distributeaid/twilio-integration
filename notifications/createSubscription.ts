@@ -48,7 +48,7 @@ export const createSubscription = ({
 		err => {
 			console.error(
 				JSON.stringify({
-					createSubscription: { error: err, TableName },
+					createSubscription: { error: (err as Error).message, TableName },
 				}),
 			)
 			return {

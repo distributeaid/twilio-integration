@@ -58,4 +58,10 @@ export const publishEvent = ({
 				TopicArn: topicArn,
 			})
 			.promise()
+		console.log(
+			JSON.stringify({
+				event,
+				topicArn,
+			}),
+		)
 	}, ToErrorInfo('Publishing event'))()

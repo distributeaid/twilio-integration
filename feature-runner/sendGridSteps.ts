@@ -48,6 +48,9 @@ export const sendGridSteps = () => [
 			receiverId,
 		]
 		runner.store[storeName] = hostname
+		runner.store[`${storeName}:id`] = receiverId
+
+		return [hostname, receiverId]
 	}),
 ]
 

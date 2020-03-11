@@ -26,6 +26,8 @@ export class IntegrationFeature extends Construct {
 				runtime: Runtime.NODEJS_12_X,
 				timeout: Duration.seconds(30),
 				memorySize: 1792,
+				description:
+					'Sets up the user and the permission for their context in Twilio Programmable Chat',
 				initialPolicy: [
 					new PolicyStatement({
 						actions: [
