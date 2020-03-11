@@ -57,18 +57,18 @@ jobs:
           node dist/scripts/fixPermissions.js
       - name: Create and publish JWT keypair
         run: |
-          export KEY_ID=`uuidgen`
+          KEY_ID=`uuidgen`
           echo -n $KEY_ID > .keyid
           openssl ecparam -genkey -name secp256r1 -noout -out ecdsa-p256-${KEY_ID}-private.pem
           openssl ec -in ecdsa-p256-${KEY_ID}-private.pem -pubout -out ecdsa-p256-${KEY_ID}-public.pem
-          export WEBSITE_BUCKET=`aws cloudformation describe-stacks --stack-name $STACK_NAME-test-extras | jq -r '.Stacks[0].Outputs[] | select(.OutputKey=="bucketName") | .OutputValue'`
+          WEBSITE_BUCKET=`aws cloudformation describe-stacks --stack-name $STACK_NAME-test-extras | jq -r '.Stacks[0].Outputs[] | select(.OutputKey=="bucketName") | .OutputValue'`
           node dist/scripts/publish-test-key.js
-          export WEBSITE_URL=`aws cloudformation describe-stacks --stack-name $STACK_NAME-test-extras | jq -r '.Stacks[0].Outputs[] | select(.OutputKey=="bucketWebsiteUrl") | .OutputValue'`
+          WEBSITE_URL=`aws cloudformation describe-stacks --stack-name $STACK_NAME-test-extras | jq -r '.Stacks[0].Outputs[] | select(.OutputKey=="bucketWebsiteUrl") | .OutputValue'`
           aws configure set cli_follow_urlparam false
           aws ssm put-parameter --name /$STACK_NAME/chat/jwks.json --type String --value $WEBSITE_URL/.well-known/jwks.json
       - name: End-to-End Tests
         run: |
-          export KEY_ID=`cat .keyid`
+          KEY_ID=`cat .keyid`
           npm run test:e2e
       - name: Semantic release
         continue-on-error: true
@@ -83,12 +83,12 @@ jobs:
         run: |
           npx cdk destroy -f '*'
           # Delete website bucket
-          WEBSITE_BUCKET=`aws cloudformation describe-stacks --stack-name $STACK_NAME-test-extras | jq -r '.Stacks[0].Outputs[0].OutputValue'`
+          WEBSITE_BUCKET=`aws cloudformation describe-stacks --stack-name $STACK_NAME-test-extras | jq -r '.Stacks[0].Outputs[] | select(.OutputKey=="bucketName") | .OutputValue'`
           aws s3 rb s3://$WEBSITE_BUCKET --force
           # Delete the test-extras stack
           npx cdk -a 'node dist/aws/cloudformation-test-extras.js' destroy -f '*'
           # Delete sourcecode bucket
-          SOURCE_CODE_BUCKET=`aws cloudformation describe-stacks --stack-name $STACK_NAME-sourcecode | jq -r '.Stacks[0].Outputs[0].OutputValue'`
+          SOURCE_CODE_BUCKET=`aws cloudformation describe-stacks --stack-name $STACK_ID-sourcecode | jq -r '.Stacks[0].Outputs[] | select(.OutputKey == "bucketName") | .OutputValue'`
           aws s3 rb s3://$SOURCE_CODE_BUCKET --force
           # Delete the sourceode stack
           npx cdk -a 'node dist/aws/cloudformation-sourcecode.js' destroy -f '*'
