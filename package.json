@@ -4,7 +4,7 @@
   "description": "Integrates Twilio as a chat provider, built using AWS serverless components.",
   "scripts": {
     "test": "jest",
-    "test:e2e": "node dist/feature-runner/run-features.js ./features --print-results"
+    "test:e2e": "node dist/feature-runner/run-features.js ./features --print-results --progress"
   },
   "repository": {
     "type": "git",
