@@ -6,8 +6,12 @@ import * as IAM from '@aws-cdk/aws-iam'
 import * as Logs from '@aws-cdk/aws-logs'
 import { EventName } from '../../events/events'
 
+export const emailVerificationCodeIndex = '07c74665-b990-45e7-b8ef-004d981c44d1'
+
 export class TwilioNotificationFeature extends CDK.Construct {
 	public readonly subscriptionsTable: DynamoDB.Table
+	public readonly emailVerificationTable: DynamoDB.Table
+
 	constructor(
 		stack: CDK.Stack,
 		id: string,
@@ -19,7 +23,9 @@ export class TwilioNotificationFeature extends CDK.Construct {
 		eventsTopic: SNS.ITopic,
 	) {
 		super(stack, id)
-		this.subscriptionsTable = new DynamoDB.Table(this, 'sunbscriptionsTable', {
+
+		// Stores subscriptions
+		this.subscriptionsTable = new DynamoDB.Table(this, 'subscriptionsTable', {
 			billingMode: DynamoDB.BillingMode.PAY_PER_REQUEST,
 			partitionKey: {
 				name: 'uuid',
@@ -35,21 +41,33 @@ export class TwilioNotificationFeature extends CDK.Construct {
 				: CDK.RemovalPolicy.RETAIN,
 		})
 
-		const SUBSCRIPTION_TABLE_CHANNEL_EMAIL_INDEX =
-			'51ef75ee-8536-4683-8eee-8d250cd3c4cd'
+		// Stores verifications of email address ownerships
+		this.emailVerificationTable = new DynamoDB.Table(
+			this,
+			'emailVerificationTable',
+			{
+				billingMode: DynamoDB.BillingMode.PAY_PER_REQUEST,
+				partitionKey: {
+					name: 'email',
+					type: DynamoDB.AttributeType.STRING,
+				},
+				sortKey: {
+					name: 'code',
+					type: DynamoDB.AttributeType.STRING,
+				},
+				removalPolicy: isTest
+					? CDK.RemovalPolicy.DESTROY
+					: CDK.RemovalPolicy.RETAIN,
+			},
+		)
 
-		this.subscriptionsTable.addGlobalSecondaryIndex({
-			indexName: SUBSCRIPTION_TABLE_CHANNEL_EMAIL_INDEX,
+		this.emailVerificationTable.addGlobalSecondaryIndex({
+			indexName: emailVerificationCodeIndex,
 			partitionKey: {
-				name: 'channel',
+				name: 'code',
 				type: DynamoDB.AttributeType.STRING,
 			},
-			sortKey: {
-				name: 'subscription',
-				type: DynamoDB.AttributeType.STRING,
-			},
-			projectionType: DynamoDB.ProjectionType.INCLUDE,
-			nonKeyAttributes: ['confirmed'],
+			projectionType: DynamoDB.ProjectionType.KEYS_ONLY,
 		})
 
 		const confirmEmailSubscriptionLambda = new Lambda.Function(
@@ -78,11 +96,16 @@ export class TwilioNotificationFeature extends CDK.Construct {
 							`arn:aws:ssm:${stack.region}:${stack.account}:parameter/${stack.stackName}/sendgrid`,
 						],
 					}),
+					new IAM.PolicyStatement({
+						actions: ['dynamoDb:PutItem'],
+						resources: [this.emailVerificationTable.tableArn],
+					}),
 				],
 				layers: [baseLayer],
 				code: lambdas.confirmEmailSubscription,
 				environment: {
 					STACK_NAME: stack.stackName,
+					EMAIL_VERIFICATION_TABLE: this.emailVerificationTable.tableName,
 				},
 			},
 		)

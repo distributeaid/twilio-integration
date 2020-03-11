@@ -38,7 +38,7 @@ Feature: Enabled email notifications
             {
                 "to": "chatuser-{chatUserId}@{testEmailDomain}",
                 "from": "DistributeAid Chat <toolbox@{sendGridDomainName}>",
-                "subject": "[DistributeAid] Please confirm your chat notifications"
+                "subject": "[DistributeAid] Confirmation code"
             }
             """
 

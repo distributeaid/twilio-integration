@@ -3,6 +3,7 @@ export enum ErrorType {
 	BadRequest = 'BadRequest',
 	AccessDenied = 'AccessDenied',
 	InternalError = 'InternalError',
+	Conflict = 'Conflict',
 }
 
 export type ErrorInfo = {

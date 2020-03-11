@@ -8,6 +8,10 @@ import {
 } from '../../sendgrid/getSendGridSettings'
 import { ChannelSubscriptionCreatedEvent } from '../../events/events'
 import { sendEmail } from '../sendEmail'
+import { pipe } from 'fp-ts/lib/pipeable'
+import { addEmailToBeVerified } from '../addEmailToBeVerified'
+import { DynamoDBClient } from '@aws-sdk/client-dynamodb-v2-node'
+import * as TE from 'fp-ts/lib/TaskEither'
 
 const fetchSettings = getSendGridSettings({
 	ssm: new SSM(),
@@ -15,7 +19,10 @@ const fetchSettings = getSendGridSettings({
 })
 let sendGridSettings: Promise<Either<ErrorInfo, SendGridSettings>>
 
-const confirmationEndpoint = process.env.CONFIRMATION_ENDPOINT
+const addEmail = addEmailToBeVerified({
+	TableName: process.env.EMAIL_VERIFICATION_TABLE || '',
+	dynamodb: new DynamoDBClient({}),
+})
 
 export const handler = async (event: SNSEvent, _: Context) => {
 	console.log(JSON.stringify({ event }))
@@ -46,14 +53,19 @@ export const handler = async (event: SNSEvent, _: Context) => {
 		event.Records[0].Sns.Message,
 	) as ChannelSubscriptionCreatedEvent
 	const { email, uuid } = apiEvent.eventPayload
-	const r = await s({
-		to: { email },
-		subject: `[DistributeAid] Please confirm your chat notifications`,
-		text: `
+
+	const r = await pipe(
+		addEmail({ email }),
+		TE.chain(code =>
+			s({
+				to: { email },
+				subject: `[DistributeAid] Confirmation code`,
+				text: `
 Hei,
 
-please click this link to confirm your email subscription: 
-${confirmationEndpoint}?subscriptionId=${uuid}.
+here is the code to confirm your email:
+
+	${code}
 
 If you did not request to be notified, please simply 
 ignore this message.
@@ -64,8 +76,10 @@ in case you have any questions!
 
 Kind regards,
 Your DistributeAid Platform Team
-		`.trim(),
-	})()
+			`.trim(),
+			}),
+		),
+	)()
 
 	if (isRight(r)) {
 		console.log(
