@@ -47,6 +47,7 @@ jobs:
           curl -s -X POST https://chat.twilio.com/v2/Services \
             --data-urlencode "FriendlyName=test-${{ github.sha }}" \
             -u $TWILIO_ACCOUNT_SID:$TWILIO_AUTH_TOKEN > chat.json
+          cat chat.json | jq '.sid'
       - name: Set up stack for End-to-End tests
         run: |
           npx cdk -a 'node dist/aws/cloudformation-sourcecode.js' deploy
