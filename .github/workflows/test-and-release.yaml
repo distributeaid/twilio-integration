@@ -82,14 +82,14 @@ jobs:
         run: |
           export KEY_ID=`cat .keyid`
           npm run test:e2e
+      - name: Get logs
+        if: failure()
+        run: node dist/scripts/logs.js
       - name: Semantic release
         continue-on-error: true
         run: |
           npm i --no-save semantic-release
           npx semantic-release
-      - name: Get logs
-        if: always()
-        run: node dist/scripts/logs.js
       - name: Delete Twilio Chat Instance
         if: always()
         run: |
