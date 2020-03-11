@@ -30,7 +30,7 @@
     "@aws-cdk/aws-sns": "^1.27.0",
     "@aws-cdk/core": "^1.27.0",
     "@bifravst/code-style": "^6.0.6",
-    "@bifravst/package-layered-lambdas": "^3.1.1",
+    "@bifravst/package-layered-lambdas": "^3.2.1",
     "@coderbyheart/bdd-feature-runner-aws": "^10.1.1",
     "@types/aws-lambda": "^8.10.46",
     "@types/chalk": "^2.2.0",
