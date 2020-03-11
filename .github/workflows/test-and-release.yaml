@@ -42,17 +42,17 @@ jobs:
         run: npm ci
       - name: Build
         run: npx tsc
+      - name: Create Twilio Chat Service
+        run:
+          curl -X POST https://chat.twilio.com/v2/Services \ --data-urlencode
+          "FriendlyName=test-${{ github.sha }}" \ -u
+          $TWILIO_ACCOUNT_SID:$TWILIO_AUTH_TOKEN > chat.json
       - name: Set up stack for End-to-End tests
         run: |
           npx cdk -a 'node dist/aws/cloudformation-sourcecode.js' deploy
           npx cdk bootstrap
           npx cdk deploy --require-approval never
           npx cdk -a 'node dist/aws/cloudformation-test-extras.js' deploy --require-approval never
-      - name: Create Twilio Chat Service
-        run:
-          curl -X POST https://chat.twilio.com/v2/Services \ --data-urlencode
-          "FriendlyName=test-${{ github.sha }}" \ -u
-          $TWILIO_ACCOUNT_SID:$TWILIO_AUTH_TOKEN > chat.json
       - name: Provide Twilio Settings to Stack
         run: |
           aws ssm put-parameter --name /$STACK_NAME/twilio/apiKey --type String --value $TWILIO_API_KEY
@@ -105,7 +105,7 @@ jobs:
           # Delete the test-extras stack
           npx cdk -a 'node dist/aws/cloudformation-test-extras.js' destroy -f '*'
           # Delete sourcecode bucket
-          SOURCE_CODE_BUCKET=`aws cloudformation describe-stacks --stack-name $STACK_ID-sourcecode | jq -r '.Stacks[0].Outputs[] | select(.OutputKey == "bucketName") | .OutputValue'`
+          SOURCE_CODE_BUCKET=`aws cloudformation describe-stacks --stack-name $STACK_NAME-sourcecode | jq -r '.Stacks[0].Outputs[] | select(.OutputKey == "bucketName") | .OutputValue'`
           aws s3 rb s3://$SOURCE_CODE_BUCKET --force
           # Delete the sourceode stack
           npx cdk -a 'node dist/aws/cloudformation-sourcecode.js' destroy -f '*'
