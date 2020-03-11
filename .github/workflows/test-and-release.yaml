@@ -43,10 +43,10 @@ jobs:
       - name: Build
         run: npx tsc
       - name: Create Twilio Chat Service
-        run:
-          curl -X POST https://chat.twilio.com/v2/Services \ --data-urlencode
-          "FriendlyName=test-${{ github.sha }}" \ -u
-          $TWILIO_ACCOUNT_SID:$TWILIO_AUTH_TOKEN > chat.json
+        run: |
+          curl -s -X POST https://chat.twilio.com/v2/Services \
+            --data-urlencode "FriendlyName=test-${{ github.sha }}" \
+            -u $TWILIO_ACCOUNT_SID:$TWILIO_AUTH_TOKEN > chat.json
       - name: Set up stack for End-to-End tests
         run: |
           npx cdk -a 'node dist/aws/cloudformation-sourcecode.js' deploy
@@ -93,7 +93,7 @@ jobs:
         if: always()
         run: |
           TWILIO_CHAT_SERVICE_SID=`cat chat.json | jq -r '.sid'`  
-          curl -X DELETE https://chat.twilio.com/v2/Services/$TWILIO_CHAT_SERVICE_SID \
+          curl -s -X DELETE https://chat.twilio.com/v2/Services/$TWILIO_CHAT_SERVICE_SID \
             -u $TWILIO_ACCOUNT_SID:$TWILIO_AUTH_TOKEN
       - name: Clean up End-to-End test resources
         if: always()
