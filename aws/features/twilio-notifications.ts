@@ -51,10 +51,6 @@ export class TwilioNotificationFeature extends CDK.Construct {
 					name: 'email',
 					type: DynamoDB.AttributeType.STRING,
 				},
-				sortKey: {
-					name: 'code',
-					type: DynamoDB.AttributeType.STRING,
-				},
 				removalPolicy: isTest
 					? CDK.RemovalPolicy.DESTROY
 					: CDK.RemovalPolicy.RETAIN,

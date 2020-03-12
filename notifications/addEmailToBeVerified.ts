@@ -43,8 +43,7 @@ export const addEmailToBeVerified = ({
 									S: code,
 								},
 							},
-							ConditionExpression:
-								'attribute_not_exists(email) AND attribute_not_exists(code) ',
+							ConditionExpression: 'attribute_not_exists(email)',
 						}
 						const res = await dynamodb.send(new PutItemCommand(query))
 						console.log(JSON.stringify({ query, res }))
