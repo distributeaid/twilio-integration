@@ -1,15 +1,16 @@
 import { Context } from 'aws-lambda'
 import { SSM, SNS } from 'aws-sdk'
-import { GQLError, GQLErrorResult } from '../GQLError'
-import { isLeft, Either } from 'fp-ts/lib/Either'
+import { GQLError } from '../GQLError'
+import { isLeft } from 'fp-ts/lib/Either'
 import { verifyToken } from '../verifyToken'
 import { ChannelSubscriptionCreated } from '../../events/events'
 import * as TE from 'fp-ts/lib/TaskEither'
 import { publishEvent } from '../publishEvent'
-import { ErrorType, ErrorInfo } from '../ErrorInfo'
+import { ErrorType } from '../ErrorInfo'
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb-v2-node'
 import { createSubscription } from '../../notifications/createSubscription'
 import { pipe } from 'fp-ts/lib/pipeable'
+import { unwrap } from '../unwrap'
 
 const verify = verifyToken({
 	ssm: new SSM(),
@@ -25,13 +26,6 @@ const subscribe = createSubscription({
 	dynamodb,
 	TableName: process.env.SUBSCRIPTIONS_TABLE || '',
 })
-
-const unwrap = (context: Context) => async (
-	e: () => Promise<Either<ErrorInfo, unknown>>,
-): Promise<GQLErrorResult | unknown> => {
-	const r = await e()
-	return isLeft(r) ? GQLError(context, r.left) : r.right
-}
 
 export const handler = async (
 	event: {

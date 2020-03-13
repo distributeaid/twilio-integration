@@ -5,6 +5,8 @@ import * as Lambda from '@aws-cdk/aws-lambda'
 import * as IAM from '@aws-cdk/aws-iam'
 import * as Logs from '@aws-cdk/aws-logs'
 import { EventName } from '../../events/events'
+import { GQLLambda } from '../../appsync/GQLLambda'
+import { ApiFeature } from './api'
 
 export const emailVerificationCodeIndex = '07c74665-b990-45e7-b8ef-004d981c44d1'
 
@@ -18,9 +20,12 @@ export class TwilioNotificationFeature extends CDK.Construct {
 		isTest: boolean,
 		lambdas: {
 			confirmEmailSubscription: Lambda.Code
+			verifyEmailMutation: Lambda.Code
+			enableChannelNotificationsMutation: Lambda.Code
 		},
 		baseLayer: Lambda.ILayerVersion,
 		eventsTopic: SNS.ITopic,
+		apiFeature: ApiFeature,
 	) {
 		super(stack, id)
 
@@ -127,5 +132,63 @@ export class TwilioNotificationFeature extends CDK.Construct {
 			principal: new IAM.ServicePrincipal('sns.amazonaws.com'),
 			sourceArn: eventsTopic.topicArn,
 		})
+
+		// GraphQL
+
+		new GQLLambda(
+			this,
+			stack,
+			baseLayer,
+			apiFeature.api,
+			apiFeature.schema,
+			'enableChannelNotifications',
+			'Mutation',
+			lambdas.enableChannelNotificationsMutation,
+			[
+				new IAM.PolicyStatement({
+					actions: ['dynamoDb:PutItem'],
+					resources: [this.subscriptionsTable.tableArn],
+				}),
+				new IAM.PolicyStatement({
+					actions: ['ssm:GetParametersByPath'],
+					resources: [
+						`arn:aws:ssm:${stack.region}:${stack.account}:parameter/${stack.stackName}/chat`,
+					],
+				}),
+				new IAM.PolicyStatement({
+					actions: ['sns:Publish'],
+					resources: [eventsTopic.topicArn],
+				}),
+			],
+			{
+				SUBSCRIPTIONS_TABLE: this.subscriptionsTable.tableName,
+				SNS_EVENTS_TOPIC: eventsTopic.topicArn,
+			},
+		)
+
+		new GQLLambda(
+			this,
+			stack,
+			baseLayer,
+			apiFeature.api,
+			apiFeature.schema,
+			'verifyEmail',
+			'Mutation',
+			lambdas.verifyEmailMutation,
+			[
+				new IAM.PolicyStatement({
+					actions: ['dynamoDb:UpdateItem'],
+					resources: [`${this.emailVerificationTable.tableArn}/*`],
+				}),
+				new IAM.PolicyStatement({
+					actions: ['sns:Publish'],
+					resources: [eventsTopic.topicArn],
+				}),
+			],
+			{
+				EMAIL_VERIFICATION_TABLE: this.emailVerificationTable.tableName,
+				SNS_EVENTS_TOPIC: eventsTopic.topicArn,
+			},
+		)
 	}
 }

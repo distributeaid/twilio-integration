@@ -1,3 +1,4 @@
+@Only
 Feature: Enabled email notifications
 
     As a user
@@ -42,12 +43,18 @@ Feature: Enabled email notifications
             }
             """
 
-#    Scenario: Receive the verification link and verify the ownership of the email
-#
-#        When I receive an email for "chatuser-{chatUserId}@{testEmailDomain}"
-#        Then I store the link in the email as "{verificationLink}"
-#        Given I GET "{verificationLink}"
-#        Then the status code should be 202
+    Scenario: Receive the verification code and use it to verify the ownership of the email
+
+        When I receive an email for "chatuser-{chatUserId}@{testEmailDomain}"
+        Then I store the verification code in the email as "{verificationCode}"
+        When I set the GQL variable "code" to "{verificationCode}"
+        And I execute this GQL query
+            """
+            mutation verifyEmail($email: String!, $code: String!) {
+            verifyEmail(email: $email, code: $code)
+            }
+            """
+        Then the GQL query result should not contain errors
 #
 #    Scenario: Receive an email notification about a new message
 #

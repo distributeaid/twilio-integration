@@ -6,12 +6,13 @@ import { Function } from '@aws-cdk/aws-lambda'
 export class GQLLambdaResolver extends Construct {
 	constructor(
 		parent: Construct,
+		id: string,
 		graphqlApi: CfnGraphQLApi,
 		field: string,
 		type: 'Mutation' | 'Query',
 		lambda: Function,
 	) {
-		super(parent, `${field}${type}Resolver`)
+		super(parent, id)
 
 		const apiRole = new Role(this, 'Role', {
 			assumedBy: new ServicePrincipal('appsync.amazonaws.com'),
@@ -35,7 +36,7 @@ export class GQLLambdaResolver extends Construct {
 
 		const dataSource = new CfnDataSource(this, 'DataSource', {
 			apiId: graphqlApi.attrApiId,
-			name: `${field}${type}`,
+			name: `${parent.node.uniqueId}${field}${type}`,
 			type: 'AWS_LAMBDA',
 			serviceRoleArn: apiRole.roleArn,
 			lambdaConfig: {

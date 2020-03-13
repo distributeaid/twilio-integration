@@ -1,18 +1,19 @@
 type Mutation {
-    createChatToken(deviceId: ID!, token: ID!): ID!
-    enableChannelNotifications(channel: ID!, email: String!, token: ID!): ID!
+  createChatToken(deviceId: ID!, token: ID!): ID!
+  enableChannelNotifications(channel: ID!, email: String!, token: ID!): ID!
+  verifyEmail(email: String!, token: String!): Boolean
 }
 
 type Query {
-    verifyToken(token: ID!): TokenInfo!
+  verifyToken(token: ID!): TokenInfo!
 }
 
 type Schema {
-    query: Query
-    mutation: Mutation
+  query: Query
+  mutation: Mutation
 }
 
 type TokenInfo {
-    identity: ID!
-    contexts: [String!]!
+  identity: ID!
+  contexts: [String!]!
 }
