@@ -36,7 +36,7 @@ export class GQLLambdaResolver extends Construct {
 
 		const dataSource = new CfnDataSource(this, 'DataSource', {
 			apiId: graphqlApi.attrApiId,
-			name: `${parent.node.uniqueId}${field}${type}`,
+			name: `${field}${type}`,
 			type: 'AWS_LAMBDA',
 			serviceRoleArn: apiRole.roleArn,
 			lambdaConfig: {
