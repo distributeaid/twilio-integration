@@ -34,20 +34,6 @@ export class CoreStack extends Stack {
 			displayName: `${id}-eventsTopic`,
 		})
 
-		const notifications = new TwilioNotificationFeature(
-			this,
-			'notifications',
-			isTest,
-			{
-				confirmEmailSubscription: Code.bucket(
-					sourceCodeBucket,
-					layeredLambdas.lambdaZipFileNames.confirmEmailSubscription,
-				),
-			},
-			baseLayer,
-			this.eventsTopic,
-		)
-
 		const api = new ApiFeature(
 			this,
 			'api',
@@ -60,14 +46,36 @@ export class CoreStack extends Stack {
 					sourceCodeBucket,
 					layeredLambdas.lambdaZipFileNames.verifyTokenQuery,
 				),
-				enableChannelNotificationsMutation: Code.bucket(
+				verifyEmailMutation: Code.bucket(
 					sourceCodeBucket,
-					layeredLambdas.lambdaZipFileNames.enableChannelNotificationsMutation,
+					layeredLambdas.lambdaZipFileNames.verifyEmailMutation,
 				),
 			},
 			baseLayer,
 			this.eventsTopic,
-			notifications,
+		)
+
+		new TwilioNotificationFeature(
+			this,
+			'notifications',
+			isTest,
+			{
+				enableChannelNotificationsMutation: Code.bucket(
+					sourceCodeBucket,
+					layeredLambdas.lambdaZipFileNames.enableChannelNotificationsMutation,
+				),
+				sendEmailConfirmationCode: Code.bucket(
+					sourceCodeBucket,
+					layeredLambdas.lambdaZipFileNames.sendEmailConfirmationCode,
+				),
+				verifyEmailMutation: Code.bucket(
+					sourceCodeBucket,
+					layeredLambdas.lambdaZipFileNames.verifyEmailMutation,
+				),
+			},
+			baseLayer,
+			this.eventsTopic,
+			api,
 		)
 
 		new CfnOutput(this, 'apiUrl', {

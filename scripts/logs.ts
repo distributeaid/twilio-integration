@@ -21,7 +21,7 @@ const main = async () => {
 					logGroupName,
 					orderBy: 'LastEventTime',
 					descending: true,
-					limit: 10,
+					limit: 1,
 				})
 				.promise()
 			return {

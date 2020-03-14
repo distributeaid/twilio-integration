@@ -7,7 +7,8 @@ export type TwilioIntegrationLayeredLambdas = LayeredLambdas<{
 	verifyTokenQuery: string
 	setUpUserChannels: string
 	enableChannelNotificationsMutation: string
-	confirmEmailSubscription: string
+	verifyEmailMutation: string
+	sendEmailConfirmationCode: string
 }>
 
 export const lambdas = async (
@@ -28,6 +29,12 @@ export const lambdas = async (
 			'mutations',
 			'enableChannelNotifications.ts',
 		),
+		verifyEmailMutation: path.resolve(
+			rootDir,
+			'notifications',
+			'lambda',
+			'verifyEmailMutation.ts',
+		),
 		verifyTokenQuery: path.resolve(
 			rootDir,
 			'appsync',
@@ -39,10 +46,10 @@ export const lambdas = async (
 			'integration',
 			'setUpUserChannels.ts',
 		),
-		confirmEmailSubscription: path.resolve(
+		sendEmailConfirmationCode: path.resolve(
 			rootDir,
 			'notifications',
 			'lambda',
-			'confirmEmailSubscription.ts',
+			'sendEmailConfirmationCode.ts',
 		),
 	})

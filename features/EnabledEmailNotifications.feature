@@ -1,3 +1,4 @@
+@Only
 Feature: Enabled email notifications
 
     As a user
@@ -38,16 +39,23 @@ Feature: Enabled email notifications
             {
                 "to": "chatuser-{chatUserId}@{testEmailDomain}",
                 "from": "DistributeAid Chat <toolbox@{sendGridDomainName}>",
-                "subject": "[DistributeAid] Please confirm your chat notifications"
+                "subject": "[DistributeAid] Confirmation code"
             }
             """
 
-#    Scenario: Receive the verification link and verify the ownership of the email
-#
-#        When I receive an email for "chatuser-{chatUserId}@{testEmailDomain}"
-#        Then I store the link in the email as "{verificationLink}"
-#        Given I GET "{verificationLink}"
-#        Then the status code should be 202
+    Scenario: Receive the verification code and use it to verify the ownership of the email
+
+        Given I store "body.text" of the last webhook request into "emailBody"
+        And I store the email verification code stored in "emailBody" as "verificationCode"
+        When I set the GQL variable "email" to "chatuser-{chatUserId}@{testEmailDomain}"
+        And I set the GQL variable "code" to "{verificationCode}"
+        And I execute this GQL query
+            """
+            mutation verifyEmail($email: String!, $code: String!) {
+            verifyEmail(email: $email, code: $code)
+            }
+            """
+        Then the GQL query result should not contain errors
 #
 #    Scenario: Receive an email notification about a new message
 #

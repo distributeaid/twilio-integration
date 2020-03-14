@@ -1,6 +1,6 @@
-import { Construct, RemovalPolicy, Stack, Duration } from '@aws-cdk/core'
+import { Construct, RemovalPolicy, Stack } from '@aws-cdk/core'
 import { PolicyStatement, Role, ServicePrincipal } from '@aws-cdk/aws-iam'
-import { Code, Function, ILayerVersion, Runtime } from '@aws-cdk/aws-lambda'
+import { Code, ILayerVersion } from '@aws-cdk/aws-lambda'
 import { LogGroup, RetentionDays } from '@aws-cdk/aws-logs'
 import * as SNS from '@aws-cdk/aws-sns'
 import {
@@ -10,64 +10,12 @@ import {
 } from '@aws-cdk/aws-appsync'
 import { readFileSync } from 'fs'
 import * as path from 'path'
-import { GQLLambdaResolver } from '../resources/GQLLambdaResolver'
-import { TwilioNotificationFeature } from './twilio-notifications'
-
-const gqlLambda = (
-	parent: Construct,
-	stack: Stack,
-	baseLayer: ILayerVersion,
-	api: CfnGraphQLApi,
-	schema: CfnGraphQLSchema,
-	field: string,
-	type: 'Query' | 'Mutation',
-	lambda: Code,
-	policies: PolicyStatement[],
-	environment?: {
-		[key: string]: any
-	},
-): Function => {
-	const f = new Function(parent, `${field}${type}`, {
-		handler: 'index.handler',
-		runtime: Runtime.NODEJS_12_X,
-		timeout: Duration.seconds(30),
-		memorySize: 1792,
-		description: `AppSync handler lambda for the ${field} ${type}`,
-		initialPolicy: [
-			new PolicyStatement({
-				actions: [
-					'logs:CreateLogGroup',
-					'logs:CreateLogStream',
-					'logs:PutLogEvents',
-				],
-				resources: [
-					`arn:aws:logs:${stack.region}:${stack.account}:/aws/lambda/*`,
-				],
-			}),
-			...policies,
-		],
-		environment: {
-			...environment,
-			STACK_NAME: stack.stackName,
-		},
-		layers: [baseLayer],
-		code: lambda,
-	})
-
-	new LogGroup(parent, `${field}${type}LogGroup`, {
-		removalPolicy: RemovalPolicy.DESTROY,
-		logGroupName: `/aws/lambda/${f.functionName}`,
-		retention: RetentionDays.ONE_WEEK,
-	})
-
-	new GQLLambdaResolver(parent, api, field, type, f).node.addDependency(schema)
-
-	return f
-}
+import { GQLLambda } from '../../appsync/GQLLambda'
 
 export class ApiFeature extends Construct {
 	public readonly api: CfnGraphQLApi
 	public readonly apiKey: CfnApiKey
+	public readonly schema: CfnGraphQLSchema
 
 	constructor(
 		stack: Stack,
@@ -75,11 +23,10 @@ export class ApiFeature extends Construct {
 		lambdas: {
 			createChatTokenMutation: Code
 			verifyTokenQuery: Code
-			enableChannelNotificationsMutation: Code
+			verifyEmailMutation: Code
 		},
 		baseLayer: ILayerVersion,
 		eventsTopic: SNS.ITopic,
-		notificationFeature: TwilioNotificationFeature,
 	) {
 		super(stack, id)
 
@@ -114,7 +61,7 @@ export class ApiFeature extends Construct {
 			retention: RetentionDays.ONE_WEEK,
 		})
 
-		const schema = new CfnGraphQLSchema(this, 'Schema', {
+		this.schema = new CfnGraphQLSchema(this, 'Schema', {
 			apiId: this.api.attrApiId,
 			definition: readFileSync(
 				path.resolve(__dirname, '..', '..', '..', 'appsync', 'schema.graphql'),
@@ -122,12 +69,12 @@ export class ApiFeature extends Construct {
 			),
 		})
 
-		gqlLambda(
+		new GQLLambda(
 			this,
 			stack,
 			baseLayer,
 			this.api,
-			schema,
+			this.schema,
 			'createChatToken',
 			'Mutation',
 			lambdas.createChatTokenMutation,
@@ -149,43 +96,12 @@ export class ApiFeature extends Construct {
 			},
 		)
 
-		gqlLambda(
+		new GQLLambda(
 			this,
 			stack,
 			baseLayer,
 			this.api,
-			schema,
-			'enableChannelNotifications',
-			'Mutation',
-			lambdas.enableChannelNotificationsMutation,
-			[
-				new PolicyStatement({
-					actions: ['dynamoDb:PutItem'],
-					resources: [notificationFeature.subscriptionsTable.tableArn],
-				}),
-				new PolicyStatement({
-					actions: ['ssm:GetParametersByPath'],
-					resources: [
-						`arn:aws:ssm:${stack.region}:${stack.account}:parameter/${stack.stackName}/chat`,
-					],
-				}),
-				new PolicyStatement({
-					actions: ['sns:Publish'],
-					resources: [eventsTopic.topicArn],
-				}),
-			],
-			{
-				SUBSCRIPTIONS_TABLE: notificationFeature.subscriptionsTable.tableName,
-				SNS_EVENTS_TOPIC: eventsTopic.topicArn,
-			},
-		)
-
-		gqlLambda(
-			this,
-			stack,
-			baseLayer,
-			this.api,
-			schema,
+			this.schema,
 			'verifyToken',
 			'Query',
 			lambdas.verifyTokenQuery,

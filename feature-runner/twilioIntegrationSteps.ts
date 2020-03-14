@@ -55,4 +55,16 @@ export const twilioIntegrationSteps = () => [
 		const messages = await channel.getMessages(1)
 		expect(messages.items[0].body).to.equal(message)
 	}),
+	regexGroupMatcher(
+		/^I store the email verification code stored in "(?<storageSourceName>[^"]+)" as "(?<storageTargetName>[^"]+)"$/,
+	)(async ({ storageSourceName, storageTargetName }, _, runner) => {
+		const body = runner.store[storageSourceName]
+		expect(body).to.not.be.an('undefined')
+		const code = /[a-z]{8}-[a-z]{8}-[a-z]{8}/.exec(
+			body as string,
+		) as RegExpMatchArray
+		expect(body).to.not.be.null
+		runner.store[storageTargetName] = code[0]
+		return code[0]
+	}),
 ]
