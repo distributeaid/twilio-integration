@@ -62,7 +62,7 @@ jobs:
           TWILIO_CHAT_SERVICE_SID=`cat chat.json | jq -r '.sid'`
           aws ssm put-parameter --name /$STACK_NAME/twilio/chatServiceSID --type String --value $TWILIO_CHAT_SERVICE_SID
       - name: Configure Twilio Chat Service
-        run: node dist/scripts/fixPermissions.js
+        run: node dist/scripts/configureChat.js
       - name: Configure SendGrid
         run: |
           aws ssm put-parameter --name /$STACK_NAME/sendgrid/apiKey --type String --value $SENDGRID_API_KEY

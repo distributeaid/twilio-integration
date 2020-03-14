@@ -35,7 +35,7 @@ Deploy the integration:
 
 Fix the default Twilio permissions:
 
-    node dist/scripts/fixPermissions.js
+    node dist/scripts/configureChat.js
 
 ## Generating keypairs
 
