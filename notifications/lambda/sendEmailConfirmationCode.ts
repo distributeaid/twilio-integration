@@ -1,4 +1,4 @@
-import { Context, SNSEvent } from 'aws-lambda'
+import { SNSEvent } from 'aws-lambda'
 import { SSM } from 'aws-sdk'
 import { isLeft, Either, isRight } from 'fp-ts/lib/Either'
 import { ErrorInfo } from '../../appsync/ErrorInfo'
