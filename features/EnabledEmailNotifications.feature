@@ -1,4 +1,3 @@
-@Only
 Feature: Enabled email notifications
 
     As a user

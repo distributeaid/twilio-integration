@@ -24,6 +24,7 @@
   },
   "homepage": "https://github.com/distributeaid/twilio-integration#readme",
   "devDependencies": {
+    "@aws-cdk/aws-apigatewayv2": "^1.27.0",
     "@aws-cdk/aws-appsync": "^1.27.0",
     "@aws-cdk/aws-dynamodb": "^1.27.0",
     "@aws-cdk/aws-iam": "^1.27.0",
