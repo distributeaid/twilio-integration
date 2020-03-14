@@ -198,6 +198,7 @@ export class TwilioNotificationFeature extends CDK.Construct {
 		// Webhook API for Twilio notifications
 		const notificationQueue = new SQS.Queue(this, 'queue', {
 			fifo: true,
+			queueName: `${`${id}-${stack.stackName}`.substr(0, 75)}.fifo`,
 		})
 
 		const receiveTwilioWebhooksLambda = new Lambda.Function(
