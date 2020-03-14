@@ -24,7 +24,7 @@ const addEmail = addEmailToBeVerified({
 	dynamodb: new DynamoDBClient({}),
 })
 
-export const handler = async (event: SNSEvent, _: Context) => {
+export const handler = async (event: SNSEvent) => {
 	console.log(JSON.stringify({ event }))
 	if (!sendGridSettings) {
 		sendGridSettings = fetchSettings()

@@ -45,9 +45,10 @@ Feature: Enabled email notifications
 
     Scenario: Receive the verification code and use it to verify the ownership of the email
 
-        When I receive an email for "chatuser-{chatUserId}@{testEmailDomain}"
-        Then I store the verification code in the email as "{verificationCode}"
-        When I set the GQL variable "code" to "{verificationCode}"
+        Given I store "body.text" of the last webhook request into "emailBody"
+        And I store the email verification code stored in "emailBody" as "verificationCode"
+        When I set the GQL variable "email" to "chatuser-{chatUserId}@{testEmailDomain}"
+        And I set the GQL variable "code" to "{verificationCode}"
         And I execute this GQL query
             """
             mutation verifyEmail($email: String!, $code: String!) {

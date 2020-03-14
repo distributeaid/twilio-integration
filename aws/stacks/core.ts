@@ -64,9 +64,9 @@ export class CoreStack extends Stack {
 					sourceCodeBucket,
 					layeredLambdas.lambdaZipFileNames.enableChannelNotificationsMutation,
 				),
-				confirmEmailSubscription: Code.bucket(
+				sendEmailConfirmationCode: Code.bucket(
 					sourceCodeBucket,
-					layeredLambdas.lambdaZipFileNames.confirmEmailSubscription,
+					layeredLambdas.lambdaZipFileNames.sendEmailConfirmationCode,
 				),
 				verifyEmailMutation: Code.bucket(
 					sourceCodeBucket,

@@ -19,7 +19,7 @@ export class TwilioNotificationFeature extends CDK.Construct {
 		id: string,
 		isTest: boolean,
 		lambdas: {
-			confirmEmailSubscription: Lambda.Code
+			sendEmailConfirmationCode: Lambda.Code
 			verifyEmailMutation: Lambda.Code
 			enableChannelNotificationsMutation: Lambda.Code
 		},
@@ -71,9 +71,9 @@ export class TwilioNotificationFeature extends CDK.Construct {
 			projectionType: DynamoDB.ProjectionType.KEYS_ONLY,
 		})
 
-		const confirmEmailSubscriptionLambda = new Lambda.Function(
+		const sendEmailConfirmationCodeLambda = new Lambda.Function(
 			this,
-			`confirmEmailSubscriptionLambda`,
+			`sendEmailConfirmationCodeLambda`,
 			{
 				handler: 'index.handler',
 				runtime: Lambda.Runtime.NODEJS_12_X,
@@ -103,7 +103,7 @@ export class TwilioNotificationFeature extends CDK.Construct {
 					}),
 				],
 				layers: [baseLayer],
-				code: lambdas.confirmEmailSubscription,
+				code: lambdas.sendEmailConfirmationCode,
 				environment: {
 					STACK_NAME: stack.stackName,
 					EMAIL_VERIFICATION_TABLE: this.emailVerificationTable.tableName,
@@ -111,15 +111,15 @@ export class TwilioNotificationFeature extends CDK.Construct {
 			},
 		)
 
-		new Logs.LogGroup(this, `confirmEmailSubscriptionLambdaLogGroup`, {
+		new Logs.LogGroup(this, `sendEmailConfirmationCodeLambdaLogGroup`, {
 			removalPolicy: CDK.RemovalPolicy.DESTROY,
-			logGroupName: `/aws/lambda/${confirmEmailSubscriptionLambda.functionName}`,
+			logGroupName: `/aws/lambda/${sendEmailConfirmationCodeLambda.functionName}`,
 			retention: Logs.RetentionDays.ONE_WEEK,
 		})
 
 		new SNS.Subscription(this, 'ChannelSubscriptionCreatedSubscription', {
 			protocol: SNS.SubscriptionProtocol.LAMBDA,
-			endpoint: confirmEmailSubscriptionLambda.functionArn,
+			endpoint: sendEmailConfirmationCodeLambda.functionArn,
 			topic: eventsTopic,
 			filterPolicy: {
 				eventName: SNS.SubscriptionFilter.stringFilter({
@@ -128,7 +128,7 @@ export class TwilioNotificationFeature extends CDK.Construct {
 			},
 		})
 
-		confirmEmailSubscriptionLambda.addPermission('InvokeBySNS', {
+		sendEmailConfirmationCodeLambda.addPermission('InvokeBySNS', {
 			principal: new IAM.ServicePrincipal('sns.amazonaws.com'),
 			sourceArn: eventsTopic.topicArn,
 		})
@@ -178,7 +178,7 @@ export class TwilioNotificationFeature extends CDK.Construct {
 			[
 				new IAM.PolicyStatement({
 					actions: ['dynamoDb:UpdateItem'],
-					resources: [`${this.emailVerificationTable.tableArn}/*`],
+					resources: [this.emailVerificationTable.tableArn],
 				}),
 				new IAM.PolicyStatement({
 					actions: ['sns:Publish'],

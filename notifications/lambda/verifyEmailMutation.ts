@@ -33,6 +33,7 @@ export const handler = async (
 					}),
 				),
 			),
+			TE.map(() => true),
 		),
 	)
 }
