@@ -29,6 +29,10 @@ type TwilioEvent = {
 	Body: string // 'Hello World from 5733596e-5909-4d54-b13e-7c8f4577a67e!'
 }
 
+export type TwilioChannelEvent = TwilioEvent & {
+	channel: ChannelInstance
+}
+
 const fetchSettings = getTwilioSettings({
 	ssm: new SSM(),
 	scopePrefix: process.env.STACK_NAME as string,

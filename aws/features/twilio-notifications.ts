@@ -10,7 +10,8 @@ import { GQLLambda } from '../../appsync/GQLLambda'
 import { ApiFeature } from './api'
 import * as HttpApi from '@aws-cdk/aws-apigatewayv2'
 
-export const emailVerificationCodeIndex = '07c74665-b990-45e7-b8ef-004d981c44d1'
+const emailVerificationCodeIndex = '07c74665-b990-45e7-b8ef-004d981c44d1'
+const subscriptionsByChannelIndex = 'c7e6463c-5513-45b6-99d9-0b51afb9b744'
 
 export class TwilioNotificationFeature extends CDK.Construct {
 	public readonly subscriptionsTable: DynamoDB.Table
@@ -26,6 +27,7 @@ export class TwilioNotificationFeature extends CDK.Construct {
 			verifyEmailMutation: Lambda.Code
 			enableChannelNotificationsMutation: Lambda.Code
 			receiveTwilioWebhooks: Lambda.Code
+			sendEmailNotifications: Lambda.Code
 		},
 		baseLayer: Lambda.ILayerVersion,
 		eventsTopic: SNS.ITopic,
@@ -48,6 +50,16 @@ export class TwilioNotificationFeature extends CDK.Construct {
 			removalPolicy: isTest
 				? CDK.RemovalPolicy.DESTROY
 				: CDK.RemovalPolicy.RETAIN,
+		})
+
+		this.subscriptionsTable.addGlobalSecondaryIndex({
+			indexName: subscriptionsByChannelIndex,
+			partitionKey: {
+				name: 'channel',
+				type: DynamoDB.AttributeType.STRING,
+			},
+			projectionType: DynamoDB.ProjectionType.INCLUDE,
+			nonKeyAttributes: ['subscription'],
 		})
 
 		// Stores verifications of email address ownerships
@@ -199,6 +211,10 @@ export class TwilioNotificationFeature extends CDK.Construct {
 		const notificationQueue = new SQS.Queue(this, 'queue', {
 			fifo: true,
 			queueName: `${`${id}-${stack.stackName}`.substr(0, 75)}.fifo`,
+			// visibilityTimeout must match timeout of sendEmailNotifications Lambda
+			visibilityTimeout: isTest
+				? CDK.Duration.seconds(30)
+				: CDK.Duration.minutes(5),
 		})
 
 		const receiveTwilioWebhooksLambda = new Lambda.Function(
@@ -259,6 +275,76 @@ export class TwilioNotificationFeature extends CDK.Construct {
 		receiveTwilioWebhooksLambda.addPermission('invokeByHttpApi', {
 			principal: new IAM.ServicePrincipal('apigateway.amazonaws.com'),
 			sourceArn: `arn:aws:execute-api:${stack.region}:${stack.account}:${this.twilioWebhookReceiver.ref}/*/$default`,
+		})
+
+		// Send email notifications
+		const sendEmailNotifications = new Lambda.Function(
+			this,
+			`sendEmailNotifications`,
+			{
+				handler: 'index.handler',
+				runtime: Lambda.Runtime.NODEJS_12_X,
+				timeout: isTest ? CDK.Duration.seconds(30) : CDK.Duration.minutes(5),
+				memorySize: 1792,
+				description: 'Send email notifications to subscribers',
+				initialPolicy: [
+					new IAM.PolicyStatement({
+						actions: [
+							'logs:CreateLogGroup',
+							'logs:CreateLogStream',
+							'logs:PutLogEvents',
+						],
+						resources: [
+							`arn:aws:logs:${stack.region}:${stack.account}:/aws/lambda/*`,
+						],
+					}),
+					new IAM.PolicyStatement({
+						actions: ['ssm:GetParametersByPath'],
+						resources: [
+							`arn:aws:ssm:${stack.region}:${stack.account}:parameter/${stack.stackName}/sendgrid`,
+						],
+					}),
+					new IAM.PolicyStatement({
+						actions: [
+							'sqs:ReceiveMessage',
+							'sqs:DeleteMessage',
+							'sqs:GetQueueAttributes',
+						],
+						resources: [notificationQueue.queueArn],
+					}),
+					// Allow to query for channel subscriptions
+					new IAM.PolicyStatement({
+						actions: ['dynamoDb:Query'],
+						resources: [
+							`${this.subscriptionsTable.tableArn}/index/${subscriptionsByChannelIndex}`,
+						],
+					}),
+					// Allow to query for emails
+					new IAM.PolicyStatement({
+						actions: ['dynamoDb:GetItem'],
+						resources: [this.emailVerificationTable.tableArn],
+					}),
+				],
+				environment: {
+					STACK_NAME: stack.stackName,
+					SUBSCRIPTIONS_TABLE: this.subscriptionsTable.tableName,
+					SUBSCRIPTIONS_BY_CHANNEL_INDEX: subscriptionsByChannelIndex,
+					EMAIL_VERIFICATION_TABLE: this.emailVerificationTable.tableName,
+				},
+				layers: [baseLayer],
+				code: lambdas.sendEmailNotifications,
+			},
+		)
+
+		new Lambda.EventSourceMapping(this, 'invokeLambdaFromNotificationQueue', {
+			eventSourceArn: notificationQueue.queueArn,
+			target: sendEmailNotifications,
+			batchSize: isTest ? 1 : 10, // 10 is maximum allowed
+		})
+
+		receiveTwilioWebhooksLambda.addPermission('invokeBySQS', {
+			principal: new IAM.ServicePrincipal('sqs.amazonaws.com'),
+			sourceArn: notificationQueue.queueArn,
 		})
 	}
 }

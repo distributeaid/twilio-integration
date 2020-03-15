@@ -1,4 +1,4 @@
-Feature: Enabled email notifications
+Feature: Email notifications
 
     As a user
     I can enabled email notifications on a channel
@@ -55,24 +55,24 @@ Feature: Enabled email notifications
             }
             """
         Then the GQL query result should not contain errors
-#
-#    Scenario: Receive an email notification about a new message
-#
-#        # Another user posts a message
-#        Given I have a chat JWT for subject "{otherChatUserId}" and context "shipment-{shipmentId}" in "otherJwt"
-#        When I set the GQL variable "deviceId" to "e2e-test"
-#        When I set the GQL variable "token" to "{otherJwt}"
-#        And I execute this GQL query
-#            """
-#            mutation createChatToken($deviceId: ID!, $token: ID!) {
-#            createChatToken(deviceId: $deviceId, token: $token)
-#            }
-#            """
-#        Then the GQL query result should not contain errors
-#        And I store the GQL operation result as "otherChatToken"
-#        Given I am authenticated against Twilio Chat with the token "{chatToken}"
-#        When I join the channel "shipment-{shipmentId}"
-#        And I post the message "Hello {shipmentId} from {otherChatUserId}!" in the channel "shipment-{shipmentId}"
+
+    Scenario: Receive an email notification about a new message
+
+        # Another user posts a message
+        Given I have a chat JWT for subject "{otherChatUserId}" and context "shipment-{shipmentId}" in "otherJwt"
+        When I set the GQL variable "deviceId" to "e2e-test"
+        When I set the GQL variable "token" to "{otherJwt}"
+        And I execute this GQL query
+            """
+            mutation createChatToken($deviceId: ID!, $token: ID!) {
+            createChatToken(deviceId: $deviceId, token: $token)
+            }
+            """
+        Then the GQL query result should not contain errors
+        And I store the GQL operation result as "otherChatToken"
+        Given I am authenticated against Twilio Chat with the token "{otherChatToken}"
+        When I join the channel "shipment-{shipmentId}"
+        And I post the message "Hello {shipmentId} from {otherChatUserId}!" in the channel "shipment-{shipmentId}"
 #        # Receive email notification
 #        Then I receive an email for "chatuser-{chatUserId}@{testEmailDomain}"
 #        And the email subject should be "[Distribute Aid] New message in shipment-{shipmentId}"

@@ -86,6 +86,10 @@ export class CoreStack extends Stack {
 					sourceCodeBucket,
 					layeredLambdas.lambdaZipFileNames.receiveTwilioWebhooks,
 				),
+				sendEmailNotifications: Code.bucket(
+					sourceCodeBucket,
+					layeredLambdas.lambdaZipFileNames.sendEmailNotifications,
+				),
 			},
 			baseLayer,
 			this.eventsTopic,
