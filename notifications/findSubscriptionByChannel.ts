@@ -15,9 +15,11 @@ export const findSubscriptionByChannel = ({
 	dynamodb: DynamoDBClient
 	TableName: string
 	IndexName: string
-}) => (channel: string): TE.TaskEither<ErrorInfo, string[]> =>
+}) => (
+	channel: string,
+): TE.TaskEither<ErrorInfo, { subscription: string; identity: string }[]> =>
 	pipe(
-		TE.tryCatch<ErrorInfo, string[]>(
+		TE.tryCatch<ErrorInfo, { subscription: string; identity: string }[]>(
 			async () => {
 				const query: QueryInput = {
 					TableName,
@@ -25,17 +27,27 @@ export const findSubscriptionByChannel = ({
 					KeyConditionExpression: '#channel = :channel',
 					ExpressionAttributeNames: {
 						'#channel': 'channel',
+						'#identity': 'identity',
+						'#subscription': 'subscription',
 					},
 					ExpressionAttributeValues: {
 						':channel': {
 							S: channel,
 						},
 					},
-					ProjectionExpression: 'subscription',
+					ProjectionExpression: '#subscription,#identity',
 				}
 				const res = await dynamodb.send(new QueryCommand(query))
 				console.log(JSON.stringify({ query, res }))
-				return (res.Items || []).map(({ subscription: { S } }) => S as string)
+				return (res.Items || []).map(
+					({
+						subscription: { S: subscription },
+						identity: { S: identity },
+					}) => ({
+						subscription: subscription as string,
+						identity: identity as string,
+					}),
+				)
 			},
 			err => {
 				console.error(

@@ -13,15 +13,27 @@ import { pipe } from 'fp-ts/lib/pipeable'
 import * as TE from 'fp-ts/lib/TaskEither'
 import * as A from 'fp-ts/lib/Array'
 import { findEmailVerification } from '../findEmailVerification'
+import {
+	getTwilioSettings,
+	TwilioSettings,
+} from '../../twilio/getTwilioSettings'
+import { Twilio } from 'twilio'
+import { fetchUser } from '../../integration/api'
 
-const fetchSettings = getSendGridSettings({
+const fetchSendgridSettings = getSendGridSettings({
 	ssm: new SSM(),
 	scopePrefix: process.env.STACK_NAME as string,
 })
 let sendGridSettings: Promise<Either<ErrorInfo, SendGridSettings>>
 
+const fetchTwilioSettings = getTwilioSettings({
+	ssm: new SSM(),
+	scopePrefix: process.env.STACK_NAME as string,
+})
+let twilioSettings: Promise<Either<ErrorInfo, TwilioSettings>>
+
 const dynamodb = new DynamoDBClient({})
-const findSubscriptions = findSubscriptionByChannel({
+const findChannelSubscriptions = findSubscriptionByChannel({
 	TableName: process.env.SUBSCRIPTIONS_TABLE || '',
 	IndexName: process.env.SUBSCRIPTIONS_BY_CHANNEL_INDEX || '',
 	dynamodb,
@@ -34,20 +46,42 @@ const findEmail = findEmailVerification({
 export const handler = async (event: SQSEvent) => {
 	console.log(JSON.stringify({ event }))
 	if (!sendGridSettings) {
-		sendGridSettings = fetchSettings()
+		sendGridSettings = fetchSendgridSettings()
 	}
-	const maybeSettings = await sendGridSettings
-	if (isLeft(maybeSettings)) {
-		console.error(JSON.stringify(maybeSettings.left))
+	if (!twilioSettings) {
+		twilioSettings = fetchTwilioSettings()
+	}
+	const [maybeSendGridSettings, maybeTwilioSettings] = await Promise.all([
+		sendGridSettings,
+		twilioSettings,
+	])
+	if (isLeft(maybeSendGridSettings)) {
+		console.error(JSON.stringify(maybeSendGridSettings.left))
 		return
 	}
-	const { apiKey, domain } = maybeSettings.right
+	if (isLeft(maybeTwilioSettings)) {
+		console.error(JSON.stringify(maybeTwilioSettings.left))
+		return
+	}
+	const { apiKey: sendGridApiKey, domain } = maybeSendGridSettings.right
 	console.log(
 		JSON.stringify({
-			apiKey: apiKey.substr(0, 5) + '*****',
+			apiKey: sendGridApiKey.substr(0, 5) + '*****',
 			domain,
 		}),
 	)
+
+	const {
+		apiKey: twilioApiKey,
+		apiSecret,
+		accountSID,
+		chatServiceSID,
+	} = maybeTwilioSettings.right
+	const client = new Twilio(twilioApiKey, apiSecret, {
+		accountSid: accountSID,
+	})
+	const chatService = client.chat.services(chatServiceSID)
+
 	const { Records } = event
 	const events: TwilioChannelEvent[] = Records.map(({ body }) =>
 		JSON.parse(body),
@@ -60,14 +94,15 @@ export const handler = async (event: SQSEvent) => {
 		channelUniqueNames,
 		channel =>
 			pipe(
-				findSubscriptions(channel),
-				TE.map(subscriptions => ({
+				findChannelSubscriptions(channel),
+				TE.map(channelSubscriptions => ({
 					channel,
-					subscriptions: subscriptions
-						.filter(subscription => subscription.startsWith('email:'))
-						.map(subscription =>
-							subscription.substr(subscription.indexOf(':') + 1),
-						),
+					subscriptions: channelSubscriptions
+						.filter(({ subscription }) => subscription.startsWith('email:'))
+						.map(({ subscription, identity }) => ({
+							email: subscription.substr(subscription.indexOf(':') + 1),
+							identity,
+						})),
 				})),
 			),
 	)()
@@ -87,8 +122,39 @@ export const handler = async (event: SQSEvent) => {
 		}),
 	)
 
+	const identities = emailSubscriptionsPerChannel.right.reduce(
+		(identities, { subscriptions }) => [
+			...new Set([
+				...identities,
+				...subscriptions.map(({ identity }) => identity),
+			]),
+		],
+		[] as string[],
+	)
+	const users = await A.array.traverse(TE.taskEither)(
+		identities,
+		fetchUser(chatService),
+	)()
+
+	if (isLeft(users)) {
+		console.error(
+			JSON.stringify({
+				users: users.left,
+			}),
+		)
+		return
+	}
+
+	console.log(
+		JSON.stringify({
+			users: users.right,
+		}),
+	)
+
 	const emails = emailSubscriptionsPerChannel.right.reduce(
-		(emails, { subscriptions }) => [...new Set([...emails, ...subscriptions])],
+		(emails, { subscriptions }) => [
+			...new Set([...emails, ...subscriptions.map(({ email }) => email)]),
+		],
 		[] as string[],
 	)
 
@@ -116,5 +182,6 @@ export const handler = async (event: SQSEvent) => {
 	// Done: 2. Find subscriptions for channels
 	// Done: 3. Filter by email
 	// Done: 4. Find verified emails
-	// 5. Send emails
+	// Done: 5. Find inactive users
+	// 6. Send emails
 }

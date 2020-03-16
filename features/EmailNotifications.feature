@@ -56,6 +56,8 @@ Feature: Email notifications
             """
         Then the GQL query result should not contain errors
 
+    # FIXME: Send messages as user so their profile exists
+
     Scenario: Receive an email notification about a new message
 
         # Another user posts a message

@@ -11,7 +11,7 @@ import { ApiFeature } from './api'
 import * as HttpApi from '@aws-cdk/aws-apigatewayv2'
 
 const emailVerificationCodeIndex = '07c74665-b990-45e7-b8ef-004d981c44d1'
-const subscriptionsByChannelIndex = 'c7e6463c-5513-45b6-99d9-0b51afb9b744'
+const subscriptionsByChannelIndex = '7245cba2-6788-4266-ac0e-6257e57b9fc5'
 
 export class TwilioNotificationFeature extends CDK.Construct {
 	public readonly subscriptionsTable: DynamoDB.Table
@@ -59,7 +59,7 @@ export class TwilioNotificationFeature extends CDK.Construct {
 				type: DynamoDB.AttributeType.STRING,
 			},
 			projectionType: DynamoDB.ProjectionType.INCLUDE,
-			nonKeyAttributes: ['subscription'],
+			nonKeyAttributes: ['subscription', 'identity'],
 		})
 
 		// Stores verifications of email address ownerships
@@ -302,6 +302,7 @@ export class TwilioNotificationFeature extends CDK.Construct {
 						actions: ['ssm:GetParametersByPath'],
 						resources: [
 							`arn:aws:ssm:${stack.region}:${stack.account}:parameter/${stack.stackName}/sendgrid`,
+							`arn:aws:ssm:${stack.region}:${stack.account}:parameter/${stack.stackName}/twilio`,
 						],
 					}),
 					new IAM.PolicyStatement({
