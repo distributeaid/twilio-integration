@@ -331,6 +331,7 @@ export class TwilioNotificationFeature extends CDK.Construct {
 					SUBSCRIPTIONS_TABLE: this.subscriptionsTable.tableName,
 					SUBSCRIPTIONS_BY_CHANNEL_INDEX: subscriptionsByChannelIndex,
 					EMAIL_VERIFICATION_TABLE: this.emailVerificationTable.tableName,
+					IGNORE_ONLINE_STATUS: isTest ? '1' : '0',
 				},
 				layers: [baseLayer],
 				code: lambdas.sendEmailNotifications,

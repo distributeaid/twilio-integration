@@ -25,6 +25,13 @@ export const sendEmail = ({
 }): TE.TaskEither<ErrorInfo, void> =>
 	TE.tryCatch<ErrorInfo, void>(
 		async () => {
+			console.log(
+				JSON.stringify({
+					to: to.email,
+					subject,
+					body: text,
+				}),
+			)
 			const res = await fetch(`https://api.sendgrid.com/v3/mail/send`, {
 				headers: {
 					Authorization: `Bearer ${apiKey}`,

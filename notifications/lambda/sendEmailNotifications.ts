@@ -18,7 +18,10 @@ import {
 	TwilioSettings,
 } from '../../twilio/getTwilioSettings'
 import { Twilio } from 'twilio'
-import { fetchUser } from '../../integration/api'
+import { findUser } from '../../integration/api'
+import { isSome, Some } from 'fp-ts/lib/Option'
+import { UserInstance } from 'twilio/lib/rest/chat/v2/service/user'
+import { sendEmail } from '../sendEmail'
 
 const fetchSendgridSettings = getSendGridSettings({
 	ssm: new SSM(),
@@ -42,6 +45,7 @@ const findEmail = findEmailVerification({
 	TableName: process.env.EMAIL_VERIFICATION_TABLE || '',
 	dynamodb,
 })
+const ignoreOnlineStatus = process.env.IGNORE_ONLINE_STATUS === '1'
 
 export const handler = async (event: SQSEvent) => {
 	console.log(JSON.stringify({ event }))
@@ -70,6 +74,13 @@ export const handler = async (event: SQSEvent) => {
 			domain,
 		}),
 	)
+	const s = sendEmail({
+		apiKey: sendGridApiKey,
+		from: {
+			name: 'DistributeAid Chat',
+			email: `toolbox@${domain}`,
+		},
+	})
 
 	const {
 		apiKey: twilioApiKey,
@@ -131,15 +142,15 @@ export const handler = async (event: SQSEvent) => {
 		],
 		[] as string[],
 	)
-	const users = await A.array.traverse(TE.taskEither)(
+	const twilioUsers = await A.array.traverse(TE.taskEither)(
 		identities,
-		fetchUser(chatService),
+		findUser(chatService),
 	)()
 
-	if (isLeft(users)) {
+	if (isLeft(twilioUsers)) {
 		console.error(
 			JSON.stringify({
-				users: users.left,
+				users: twilioUsers.left,
 			}),
 		)
 		return
@@ -147,7 +158,19 @@ export const handler = async (event: SQSEvent) => {
 
 	console.log(
 		JSON.stringify({
-			users: users.right,
+			ignoreOnlineStatus,
+		}),
+	)
+	const usersToNotify = twilioUsers.right
+		.filter(u => isSome(u))
+		.map(u => (u as Some<UserInstance>).value)
+		.filter(u => (ignoreOnlineStatus ? true : !u.isOnline))
+
+	const userIdentitesToNotify = usersToNotify.map(u => u.identity)
+
+	console.log(
+		JSON.stringify({
+			usersToNotify,
 		}),
 	)
 
@@ -158,30 +181,67 @@ export const handler = async (event: SQSEvent) => {
 		[] as string[],
 	)
 
-	const verifiedEmails = await A.array.traverse(TE.taskEither)(
+	const emailVerifications = await A.array.traverse(TE.taskEither)(
 		emails,
 		findEmail,
 	)()
 
-	if (isLeft(verifiedEmails)) {
+	if (isLeft(emailVerifications)) {
 		console.error(
 			JSON.stringify({
-				verifiedEmails: verifiedEmails.left,
+				verifiedEmails: emailVerifications.left,
 			}),
 		)
 		return
 	}
 
+	const verifiedEmails = emailVerifications.right
+		.filter(({ verified }) => verified)
+		.map(({ email }) => email)
+
 	console.log(
 		JSON.stringify({
-			verifiedEmails: verifiedEmails.right,
+			verifiedEmails,
 		}),
 	)
 
-	// Done: 1. Sort messages by channel
-	// Done: 2. Find subscriptions for channels
-	// Done: 3. Filter by email
-	// Done: 4. Find verified emails
-	// Done: 5. Find inactive users
-	// 6. Send emails
+	// Send subscriptions
+	await Promise.all(
+		emailSubscriptionsPerChannel.right.map(async ({ channel, subscriptions }) =>
+			Promise.all(
+				subscriptions
+					.filter(
+						({ email, identity }) =>
+							verifiedEmails.includes(email) &&
+							userIdentitesToNotify.includes(identity),
+					)
+					.map(async ({ email, identity }) => {
+						const event = events.find(
+							e => e.channel.uniqueName === channel,
+						) as TwilioChannelEvent
+						const user = usersToNotify.find(
+							u => u.identity === identity,
+						) as UserInstance
+						const subject = `[DistributeAid] New message in channel ${event
+							.channel.friendlyName || event.channel.uniqueName}`
+						const text = `Hey ${user.friendlyName},
+						
+						${event.From} wrote on ${event.DateCreated}:
+						> ${event.Body}
+
+						-- 
+						Kind regards,
+						Your DistributeAid Platform Team
+						`
+						await pipe(
+							s({
+								to: { email },
+								subject,
+								text,
+							}),
+						)()
+					}),
+			),
+		),
+	)
 }

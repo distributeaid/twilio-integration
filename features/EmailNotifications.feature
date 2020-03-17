@@ -14,6 +14,24 @@ Feature: Email notifications
         And I store a UUIDv4 as "otherChatUserId"
         And I store a UUIDv4 as "shipmentId"
 
+    Scenario: Join shipment chat channel and post a new message
+
+        Given I have a chat JWT for subject "{chatUserId}" and context "shipment-{shipmentId}" in "jwt"
+        When I set the GQL variable "deviceId" to "e2e-test"
+        When I set the GQL variable "token" to "{jwt}"
+        And I execute this GQL query
+            """
+            mutation createChatToken($deviceId: ID!, $token: ID!) {
+            createChatToken(deviceId: $deviceId, token: $token)
+            }
+            """
+        Then the GQL query result should not contain errors
+        And I store the GQL operation result as "chatToken"
+        Given I am authenticated against Twilio Chat with the token "{chatToken}"
+        When I join the channel "shipment-{shipmentId}"
+        And I post the message "Hei {shipmentId}, keep me posted! Bye, {chatUserId}." in the channel "shipment-{shipmentId}"
+        Then a message with the text "Hei {shipmentId}, keep me posted! Bye, {chatUserId}." should exist in the channel "shipment-{shipmentId}"
+
     Scenario: Enable notifications for the shipment channel
 
         Given I have a chat JWT for subject "{chatUserId}" and context "shipment-{shipmentId}" in "jwt"
@@ -75,7 +93,13 @@ Feature: Email notifications
         Given I am authenticated against Twilio Chat with the token "{otherChatToken}"
         When I join the channel "shipment-{shipmentId}"
         And I post the message "Hello {shipmentId} from {otherChatUserId}!" in the channel "shipment-{shipmentId}"
-#        # Receive email notification
-#        Then I receive an email for "chatuser-{chatUserId}@{testEmailDomain}"
-#        And the email subject should be "[Distribute Aid] New message in shipment-{shipmentId}"
-#        And the email body should contain "Hello {shipmentId} from {otherChatUserId}!"
+        # Receive email notification
+        Then the Webhook Receiver "{testEmailDomain:id}" should be called
+        And the webhook request body should match this JSON
+            """
+            {
+                "to": "chatuser-{chatUserId}@{testEmailDomain}",
+                "from": "DistributeAid Chat <toolbox@{sendGridDomainName}>",
+                "subject": "[DistributeAid] New message in channel shipment-{shipmentId}"
+            }
+            """
