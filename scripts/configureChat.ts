@@ -1,4 +1,4 @@
-import { SSM } from 'aws-sdk'
+import { SSM, CloudFormation } from 'aws-sdk'
 import { getTwilioSettings } from '../twilio/getTwilioSettings'
 import { Twilio } from 'twilio'
 import { isLeft } from 'fp-ts/lib/Either'
@@ -40,6 +40,19 @@ const listUsers = ({
 	chatServiceSID: string
 }) => async () => client.chat.services(chatServiceSID).users.list()
 
+const getTwilioWebhookReceiverURL = async () =>
+	new CloudFormation()
+		.describeStacks({
+			StackName: process.env.STACK_NAME,
+		})
+		.promise()
+		.then(
+			({ Stacks }) =>
+				Stacks?.[0]?.Outputs?.find(
+					({ OutputKey }) => OutputKey === 'twilioWebhookReceiverURL',
+				)?.OutputValue,
+		)
+
 getTwilioSettings({
 	ssm: new SSM(),
 	scopePrefix: process.env.STACK_NAME as string,
@@ -49,6 +62,13 @@ getTwilioSettings({
 			console.error(maybeCfg.left.message)
 			process.exit(1)
 		}
+
+		const twilioWebhookReceiverURL = await getTwilioWebhookReceiverURL()
+		if (!twilioWebhookReceiverURL) {
+			console.error(`Twilio Webhook Receiver URL not found!`)
+			process.exit(1)
+		}
+
 		const cfg = maybeCfg.right
 		const client = new Twilio(cfg.apiKey, cfg.apiSecret, {
 			accountSid: cfg.accountSID,
@@ -61,6 +81,18 @@ getTwilioSettings({
 			chalk.yellow('Chat service SID'),
 			chalk.cyan(cfg.chatServiceSID),
 		)
+
+		console.log(
+			chalk.yellow('Webhook Receiver'),
+			chalk.cyan(twilioWebhookReceiverURL),
+		)
+
+		await client.chat.services(cfg.chatServiceSID).update({
+			postWebhookUrl: twilioWebhookReceiverURL,
+			webhookMethod: 'POST',
+			reachabilityEnabled: true,
+			webhookFilters: ['onMessageSent'],
+		})
 
 		const roles = await r()
 

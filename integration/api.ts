@@ -5,6 +5,7 @@ import { MemberInstance } from 'twilio/lib/rest/chat/v2/service/channel/member'
 import { ErrorInfo } from '../appsync/ErrorInfo'
 import { UserInstance } from 'twilio/lib/rest/chat/v2/service/user'
 import { ChannelInstance } from 'twilio/lib/rest/chat/v2/service/channel'
+import { Option, some, none } from 'fp-ts/lib/Option'
 
 export const fetchMember = (chatService: ServiceContext) => ({
 	identity,
@@ -29,6 +30,24 @@ export const fetchUser = (chatService: ServiceContext) => (identity: string) =>
 		async () => chatService.users(identity).fetch(),
 		ToErrorInfo(`Fetching user "${identity}" from Twilio`),
 	)
+
+export const findUser = (chatService: ServiceContext) => (identity: string) =>
+	tryCatch<ErrorInfo, Option<UserInstance>>(async () => {
+		try {
+			return some(await chatService.users(identity).fetch())
+		} catch (error) {
+			console.error(
+				JSON.stringify({
+					findUser: {
+						error: error.message,
+						identity,
+					},
+				}),
+			)
+			return none
+		}
+	}, ToErrorInfo(`Fetching user "${identity}" from Twilio`))
+
 export const updateUserAttributes = (
 	chatService: ServiceContext,
 	attributes: { [key: string]: string },

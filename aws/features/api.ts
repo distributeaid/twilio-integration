@@ -47,7 +47,7 @@ export class ApiFeature extends Construct {
 		)
 
 		this.api = new CfnGraphQLApi(this, 'Api', {
-			name: 'TwilioIntegration',
+			name: `Twilio Integration (${stack.stackName})`,
 			authenticationType: 'API_KEY',
 			logConfig: {
 				fieldLogLevel: 'ALL',

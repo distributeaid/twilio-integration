@@ -74,6 +74,7 @@ Remember: we take privacy and safety very seriously,
 you can always reach us at hello@distributeaid.org 
 in case you have any questions!
 
+-- 
 Kind regards,
 Your DistributeAid Platform Team
 			`.trim(),

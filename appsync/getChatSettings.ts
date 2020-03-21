@@ -22,7 +22,7 @@ export const getChatSettings = ({
 		getOrElse.TE(() =>
 			TE.left({
 				type: ErrorType.EntityNotFound,
-				message: 'Chat configuration not available!',
+				message: `Chat configuration not available under "${scopePrefix}/chat"!`,
 			}),
 		),
 	)

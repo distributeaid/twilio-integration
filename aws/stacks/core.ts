@@ -55,7 +55,17 @@ export class CoreStack extends Stack {
 			this.eventsTopic,
 		)
 
-		new TwilioNotificationFeature(
+		new CfnOutput(this, 'apiUrl', {
+			value: api.api.attrGraphQlUrl,
+			exportName: `${this.stackName}:apiUrl`,
+		})
+
+		new CfnOutput(this, 'apiKey', {
+			value: api.apiKey.attrApiKey,
+			exportName: `${this.stackName}:apiKey`,
+		})
+
+		const notifications = new TwilioNotificationFeature(
 			this,
 			'notifications',
 			isTest,
@@ -72,20 +82,23 @@ export class CoreStack extends Stack {
 					sourceCodeBucket,
 					layeredLambdas.lambdaZipFileNames.verifyEmailMutation,
 				),
+				receiveTwilioWebhooks: Code.bucket(
+					sourceCodeBucket,
+					layeredLambdas.lambdaZipFileNames.receiveTwilioWebhooks,
+				),
+				sendEmailNotifications: Code.bucket(
+					sourceCodeBucket,
+					layeredLambdas.lambdaZipFileNames.sendEmailNotifications,
+				),
 			},
 			baseLayer,
 			this.eventsTopic,
 			api,
 		)
 
-		new CfnOutput(this, 'apiUrl', {
-			value: api.api.attrGraphQlUrl,
-			exportName: `${this.stackName}:apiUrl`,
-		})
-
-		new CfnOutput(this, 'apiKey', {
-			value: api.apiKey.attrApiKey,
-			exportName: `${this.stackName}:apiKey`,
+		new CfnOutput(this, 'twilioWebhookReceiverURL', {
+			value: `https://${notifications.twilioWebhookReceiver.ref}.execute-api.${this.region}.amazonaws.com/`,
+			exportName: `${this.stackName}:twilioWebhookReceiverURL`,
 		})
 
 		new IntegrationFeature(
