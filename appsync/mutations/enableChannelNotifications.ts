@@ -11,6 +11,7 @@ import { DynamoDBClient } from '@aws-sdk/client-dynamodb-v2-node'
 import { createSubscription } from '../../notifications/createSubscription'
 import { pipe } from 'fp-ts/lib/pipeable'
 import { unwrap } from '../unwrap'
+import { findEmailVerification } from '../../notifications/findEmailVerification'
 
 const verify = verifyToken({
 	ssm: new SSM(),
@@ -25,6 +26,11 @@ const dynamodb = new DynamoDBClient({})
 const subscribe = createSubscription({
 	dynamodb,
 	TableName: process.env.SUBSCRIPTIONS_TABLE || '',
+})
+
+const findEmail = findEmailVerification({
+	dynamodb,
+	TableName: process.env.EMAIL_VERIFICATION_TABLE || '',
 })
 
 export const handler = async (
@@ -60,7 +66,7 @@ export const handler = async (
 				}),
 				TE.map(subscribe),
 				TE.flatten,
-				TE.chain(uuid =>
+				TE.chain((uuid) =>
 					pipe(
 						pe(
 							ChannelSubscriptionCreated({
@@ -70,7 +76,11 @@ export const handler = async (
 								email,
 							}),
 						),
-						TE.map(() => uuid),
+						() => findEmail(email),
+						TE.map(({ verified }) => ({
+							id: uuid,
+							emailVerified: verified,
+						})),
 					),
 				),
 			),

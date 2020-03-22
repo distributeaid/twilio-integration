@@ -41,10 +41,14 @@ Feature: Email notifications
         And I execute this GQL query
             """
             mutation enableChannelNotifications($channel: ID!, $email: String!, $token: ID!) {
-            enableChannelNotifications(channel: $channel, email: $email, token: $token)
+            enableChannelNotifications(channel: $channel, email: $email, token: $token) {
+            id
+            emailVerified
+            }
             }
             """
         Then the GQL query result should not contain errors
+        And "data.enableChannelNotifications.emailVerified" of the GQL response should be false
 
     @Retry=failAfter:3,maxDelay:10000,initialDelay:5000
     Scenario: Receive the verification link and verify the ownership of the email

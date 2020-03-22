@@ -175,10 +175,16 @@ export class TwilioNotificationFeature extends CDK.Construct {
 					actions: ['sns:Publish'],
 					resources: [eventsTopic.topicArn],
 				}),
+				// Allow to query for emails
+				new IAM.PolicyStatement({
+					actions: ['dynamoDb:GetItem'],
+					resources: [this.emailVerificationTable.tableArn],
+				}),
 			],
 			{
 				SUBSCRIPTIONS_TABLE: this.subscriptionsTable.tableName,
 				SNS_EVENTS_TOPIC: eventsTopic.topicArn,
+				EMAIL_VERIFICATION_TABLE: this.emailVerificationTable.tableName,
 			},
 		)
 

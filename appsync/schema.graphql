@@ -1,6 +1,15 @@
+type SubscriptionResult {
+  id: ID!
+  emailVerified: Boolean!
+}
+
 type Mutation {
   createChatToken(deviceId: ID!, token: ID!): ID!
-  enableChannelNotifications(channel: ID!, email: String!, token: ID!): ID!
+  enableChannelNotifications(
+    channel: ID!
+    email: String!
+    token: ID!
+  ): SubscriptionResult!
   verifyEmail(email: String!, code: String!): Boolean
 }
 

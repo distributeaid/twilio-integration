@@ -7,5 +7,9 @@ export const unwrap = (context: Context) => async (
 	e: () => Promise<Either<ErrorInfo, unknown>>,
 ): Promise<GQLErrorResult | unknown> => {
 	const r = await e()
-	return isLeft(r) ? GQLError(context, r.left) : r.right
+	if (isLeft(r)) {
+		return GQLError(context, r.left)
+	}
+	console.debug(JSON.stringify(r.right))
+	return r.right
 }
