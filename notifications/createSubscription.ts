@@ -4,7 +4,6 @@ import {
 } from '@aws-sdk/client-dynamodb-v2-node'
 import * as TE from 'fp-ts/lib/TaskEither'
 import { ErrorInfo, ErrorType } from '../appsync/ErrorInfo'
-import { v4 } from 'uuid'
 
 export const createSubscription = ({
 	dynamodb,
@@ -20,32 +19,27 @@ export const createSubscription = ({
 	channel: string
 	email: string
 	identity: string
-}): TE.TaskEither<ErrorInfo, string> => {
-	const uuid = v4()
-	return TE.tryCatch<ErrorInfo, string>(
+}): TE.TaskEither<ErrorInfo, void> =>
+	TE.tryCatch<ErrorInfo, void>(
 		async () => {
 			const query = {
 				TableName,
 				Item: {
-					uuid: {
-						S: uuid,
-					},
 					channel: {
 						S: channel,
 					},
-					identity: {
-						S: identity,
-					},
 					subscription: {
 						S: `email:${email}`,
+					},
+					identity: {
+						S: identity,
 					},
 				},
 			}
 			const res = await dynamodb.send(new PutItemCommand(query))
 			console.log(JSON.stringify({ query, res }))
-			return uuid
 		},
-		err => {
+		(err) => {
 			console.error(
 				JSON.stringify({
 					createSubscription: { error: (err as Error).message, TableName },
@@ -57,4 +51,3 @@ export const createSubscription = ({
 			}
 		},
 	)
-}

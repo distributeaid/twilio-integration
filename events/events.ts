@@ -34,7 +34,6 @@ export const NickUpdated = (
 })
 
 type ChannelSubscriptionCreatedEventPayload = {
-	uuid: string
 	identity: string
 	channel: string
 	email: string

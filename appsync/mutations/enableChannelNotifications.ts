@@ -25,7 +25,7 @@ const dynamodb = new DynamoDBClient({})
 
 const subscribe = createSubscription({
 	dynamodb,
-	TableName: process.env.SUBSCRIPTIONS_TABLE || '',
+	TableName: process.env.SUBSCRIPTION_TABLE || '',
 })
 
 const findEmail = findEmailVerification({
@@ -70,7 +70,6 @@ export const handler = async (
 					pipe(
 						pe(
 							ChannelSubscriptionCreated({
-								uuid,
 								identity,
 								channel,
 								email,

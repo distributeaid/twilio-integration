@@ -11,10 +11,9 @@ import { ApiFeature } from './api'
 import * as HttpApi from '@aws-cdk/aws-apigatewayv2'
 
 const emailVerificationCodeIndex = '07c74665-b990-45e7-b8ef-004d981c44d1'
-const subscriptionsByChannelIndex = '7245cba2-6788-4266-ac0e-6257e57b9fc5'
 
 export class TwilioNotificationFeature extends CDK.Construct {
-	public readonly subscriptionsTable: DynamoDB.Table
+	public readonly subscriptionTable: DynamoDB.Table
 	public readonly emailVerificationTable: DynamoDB.Table
 	public readonly twilioWebhookReceiver: HttpApi.CfnApi
 
@@ -36,30 +35,20 @@ export class TwilioNotificationFeature extends CDK.Construct {
 		super(stack, id)
 
 		// Stores subscriptions
-		this.subscriptionsTable = new DynamoDB.Table(this, 'subscriptionsTable', {
+		this.subscriptionTable = new DynamoDB.Table(this, 'subscriptionTable', {
 			billingMode: DynamoDB.BillingMode.PAY_PER_REQUEST,
 			partitionKey: {
-				name: 'uuid',
+				name: 'channel',
 				type: DynamoDB.AttributeType.STRING,
 			},
 			sortKey: {
-				name: 'channel',
+				name: 'subscription',
 				type: DynamoDB.AttributeType.STRING,
 			},
 			pointInTimeRecovery: true,
 			removalPolicy: isTest
 				? CDK.RemovalPolicy.DESTROY
 				: CDK.RemovalPolicy.RETAIN,
-		})
-
-		this.subscriptionsTable.addGlobalSecondaryIndex({
-			indexName: subscriptionsByChannelIndex,
-			partitionKey: {
-				name: 'channel',
-				type: DynamoDB.AttributeType.STRING,
-			},
-			projectionType: DynamoDB.ProjectionType.INCLUDE,
-			nonKeyAttributes: ['subscription', 'identity'],
 		})
 
 		// Stores verifications of email address ownerships
@@ -163,7 +152,7 @@ export class TwilioNotificationFeature extends CDK.Construct {
 			[
 				new IAM.PolicyStatement({
 					actions: ['dynamoDb:PutItem'],
-					resources: [this.subscriptionsTable.tableArn],
+					resources: [this.subscriptionTable.tableArn],
 				}),
 				new IAM.PolicyStatement({
 					actions: ['ssm:GetParametersByPath'],
@@ -182,7 +171,7 @@ export class TwilioNotificationFeature extends CDK.Construct {
 				}),
 			],
 			{
-				SUBSCRIPTIONS_TABLE: this.subscriptionsTable.tableName,
+				SUBSCRIPTION_TABLE: this.subscriptionTable.tableName,
 				SNS_EVENTS_TOPIC: eventsTopic.topicArn,
 				EMAIL_VERIFICATION_TABLE: this.emailVerificationTable.tableName,
 			},
@@ -322,9 +311,7 @@ export class TwilioNotificationFeature extends CDK.Construct {
 					// Allow to query for channel subscriptions
 					new IAM.PolicyStatement({
 						actions: ['dynamoDb:Query'],
-						resources: [
-							`${this.subscriptionsTable.tableArn}/index/${subscriptionsByChannelIndex}`,
-						],
+						resources: [this.subscriptionTable.tableArn],
 					}),
 					// Allow to query for emails
 					new IAM.PolicyStatement({
@@ -334,8 +321,7 @@ export class TwilioNotificationFeature extends CDK.Construct {
 				],
 				environment: {
 					STACK_NAME: stack.stackName,
-					SUBSCRIPTIONS_TABLE: this.subscriptionsTable.tableName,
-					SUBSCRIPTIONS_BY_CHANNEL_INDEX: subscriptionsByChannelIndex,
+					SUBSCRIPTION_TABLE: this.subscriptionTable.tableName,
 					EMAIL_VERIFICATION_TABLE: this.emailVerificationTable.tableName,
 					IGNORE_ONLINE_STATUS: isTest ? '1' : '0',
 				},

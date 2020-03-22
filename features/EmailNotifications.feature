@@ -42,7 +42,6 @@ Feature: Email notifications
             """
             mutation enableChannelNotifications($channel: ID!, $email: String!, $token: ID!) {
             enableChannelNotifications(channel: $channel, email: $email, token: $token) {
-            id
             emailVerified
             }
             }

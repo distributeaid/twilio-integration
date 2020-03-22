@@ -52,11 +52,11 @@ export const handler = async (event: SNSEvent) => {
 	const apiEvent = JSON.parse(
 		event.Records[0].Sns.Message,
 	) as ChannelSubscriptionCreatedEvent
-	const { email, uuid } = apiEvent.eventPayload
+	const { email } = apiEvent.eventPayload
 
 	const r = await pipe(
 		addEmail({ email }),
-		TE.chain(code =>
+		TE.chain((code) =>
 			s({
 				to: { email },
 				subject: `[DistributeAid] Confirmation code`,
@@ -86,7 +86,6 @@ Your DistributeAid Platform Team
 		console.log(
 			JSON.stringify({
 				email,
-				uuid,
 			}),
 		)
 	} else {

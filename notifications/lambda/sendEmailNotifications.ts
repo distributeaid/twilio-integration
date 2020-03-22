@@ -37,8 +37,7 @@ let twilioSettings: Promise<Either<ErrorInfo, TwilioSettings>>
 
 const dynamodb = new DynamoDBClient({})
 const findChannelSubscriptions = findSubscriptionByChannel({
-	TableName: process.env.SUBSCRIPTIONS_TABLE || '',
-	IndexName: process.env.SUBSCRIPTIONS_BY_CHANNEL_INDEX || '',
+	TableName: process.env.SUBSCRIPTION_TABLE || '',
 	dynamodb,
 })
 const findEmail = findEmailVerification({
@@ -103,10 +102,10 @@ export const handler = async (event: SQSEvent) => {
 
 	const emailSubscriptionsPerChannel = await A.array.traverse(TE.taskEither)(
 		channelUniqueNames,
-		channel =>
+		(channel) =>
 			pipe(
 				findChannelSubscriptions(channel),
-				TE.map(channelSubscriptions => ({
+				TE.map((channelSubscriptions) => ({
 					channel,
 					subscriptions: channelSubscriptions
 						.filter(({ subscription }) => subscription.startsWith('email:'))
@@ -162,11 +161,11 @@ export const handler = async (event: SQSEvent) => {
 		}),
 	)
 	const usersToNotify = twilioUsers.right
-		.filter(u => isSome(u))
-		.map(u => (u as Some<UserInstance>).value)
-		.filter(u => (ignoreOnlineStatus ? true : !u.isOnline))
+		.filter((u) => isSome(u))
+		.map((u) => (u as Some<UserInstance>).value)
+		.filter((u) => (ignoreOnlineStatus ? true : !u.isOnline))
 
-	const userIdentitesToNotify = usersToNotify.map(u => u.identity)
+	const userIdentitesToNotify = usersToNotify.map((u) => u.identity)
 
 	console.log(
 		JSON.stringify({
@@ -217,13 +216,14 @@ export const handler = async (event: SQSEvent) => {
 					)
 					.map(async ({ email, identity }) => {
 						const event = events.find(
-							e => e.channel.uniqueName === channel,
+							(e) => e.channel.uniqueName === channel,
 						) as TwilioChannelEvent
 						const user = usersToNotify.find(
-							u => u.identity === identity,
+							(u) => u.identity === identity,
 						) as UserInstance
-						const subject = `[DistributeAid] New message in channel ${event
-							.channel.friendlyName || event.channel.uniqueName}`
+						const subject = `[DistributeAid] New message in channel ${
+							event.channel.friendlyName || event.channel.uniqueName
+						}`
 						const text = `Hey ${user.friendlyName},
 						
 						${event.From} wrote on ${event.DateCreated}:

@@ -10,11 +10,9 @@ import { ErrorInfo, ErrorType } from '../appsync/ErrorInfo'
 export const findSubscriptionByChannel = ({
 	dynamodb,
 	TableName,
-	IndexName,
 }: {
 	dynamodb: DynamoDBClient
 	TableName: string
-	IndexName: string
 }) => (
 	channel: string,
 ): TE.TaskEither<ErrorInfo, { subscription: string; identity: string }[]> =>
@@ -23,8 +21,7 @@ export const findSubscriptionByChannel = ({
 			async () => {
 				const query: QueryInput = {
 					TableName,
-					IndexName,
-					KeyConditionExpression: '#channel = :channel',
+					KeyConditionExpression: '#channel = :channel AND #subscription > ""',
 					ExpressionAttributeNames: {
 						'#channel': 'channel',
 						'#identity': 'identity',
@@ -35,7 +32,7 @@ export const findSubscriptionByChannel = ({
 							S: channel,
 						},
 					},
-					ProjectionExpression: '#subscription,#identity',
+					ProjectionExpression: '#identity',
 				}
 				const res = await dynamodb.send(new QueryCommand(query))
 				console.log(JSON.stringify({ query, res }))
@@ -49,13 +46,12 @@ export const findSubscriptionByChannel = ({
 					}),
 				)
 			},
-			err => {
+			(err) => {
 				console.error(
 					JSON.stringify({
 						findSubscriptionByChannel: {
 							error: err,
 							TableName,
-							IndexName,
 							channel,
 						},
 					}),

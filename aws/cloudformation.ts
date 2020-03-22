@@ -29,9 +29,9 @@ import { stackName } from './stackName'
 			Bucket,
 		}),
 		layeredLambdas,
-		process.env.CI === '1',
+		process.env.CI === '1' || process.env.IS_TEST === '1',
 	).synth()
-})().catch(err => {
+})().catch((err) => {
 	console.error(err.message)
 	process.exit(1)
 })
