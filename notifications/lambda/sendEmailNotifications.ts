@@ -224,14 +224,15 @@ export const handler = async (event: SQSEvent) => {
 						const subject = `[DistributeAid] New message in channel ${
 							event.channel.friendlyName || event.channel.uniqueName
 						}`
-						const text = `Hey ${user.friendlyName},
-						
-						${event.From} wrote on ${event.DateCreated}:
-						> ${event.Body}
+						const text = `
+Hey ${user.friendlyName || email},
 
-						-- 
-						Kind regards,
-						Your DistributeAid Platform Team
+${event.From} wrote on ${event.DateCreated}:
+> ${event.Body}
+
+-- 
+Kind regards,
+Your DistributeAid Platform Team
 						`
 						await pipe(
 							s({
