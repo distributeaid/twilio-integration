@@ -26,7 +26,7 @@ export const handler = async (
 	return unwrap(context)(
 		pipe(
 			verify(event),
-			TE.map(
+			TE.chain(() =>
 				pe(
 					EmailVerified({
 						email: event.email,

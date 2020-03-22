@@ -1,7 +1,7 @@
 import { SNS } from 'aws-sdk'
 import { ToErrorInfo } from './GQLError'
 import { Event, EventWithPayload } from '../events/events'
-import { tryCatch } from 'fp-ts/lib/TaskEither'
+import * as TE from 'fp-ts/lib/TaskEither'
 import { ErrorInfo } from './ErrorInfo'
 
 const toValue = (v: string | string[] | number): SNS.MessageAttributeValue => {
@@ -35,8 +35,8 @@ export const publishEvent = ({
 }: {
 	sns: SNS
 	topicArn: string
-}) => (event: Event | EventWithPayload) => async () =>
-	tryCatch<ErrorInfo, void>(async () => {
+}) => (event: Event | EventWithPayload) =>
+	TE.tryCatch<ErrorInfo, boolean>(async () => {
 		await sns
 			.publish({
 				Message: JSON.stringify(event),
@@ -64,4 +64,5 @@ export const publishEvent = ({
 				topicArn,
 			}),
 		)
-	}, ToErrorInfo('Publishing event'))()
+		return true
+	}, ToErrorInfo('Publishing event'))

@@ -58,31 +58,24 @@ export const handler = async (
 
 	return unwrap(context)(
 		pipe(
-			pipe(
-				TE.right({
-					channel,
-					email,
-					identity,
-				}),
-				TE.map(subscribe),
-				TE.flatten,
-				TE.chain((uuid) =>
-					pipe(
-						pe(
-							ChannelSubscriptionCreated({
-								identity,
-								channel,
-								email,
-							}),
-						),
-						() => findEmail(email),
-						TE.map(({ verified }) => ({
-							id: uuid,
-							emailVerified: verified,
-						})),
-					),
+			subscribe({
+				channel,
+				email,
+				identity,
+			}),
+			TE.chain(() =>
+				pe(
+					ChannelSubscriptionCreated({
+						identity,
+						channel,
+						email,
+					}),
 				),
 			),
+			TE.chain(() => findEmail(email)),
+			TE.map(({ verified }) => ({
+				emailVerified: verified,
+			})),
 		),
 	)
 }

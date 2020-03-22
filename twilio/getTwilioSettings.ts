@@ -22,13 +22,13 @@ export const getTwilioSettings = ({
 }) =>
 	pipe(
 		getSettings({ ssm, scope: `${scopePrefix}/twilio` }),
-		TE.map(f => ({
+		TE.map((f) => ({
 			apiKey: f('apiKey'),
 			apiSecret: f('apiSecret'),
 			accountSID: f('accountSID'),
 			chatServiceSID: f('chatServiceSID'),
 		})),
-		TE.map(cfg =>
+		TE.map((cfg) =>
 			Object.values(cfg).filter(isNone).length
 				? TE.left({
 						type: ErrorType.EntityNotFound,
@@ -37,5 +37,5 @@ export const getTwilioSettings = ({
 				: TE.right(cfg),
 		),
 		TE.flatten,
-		TE.map(cfg => unwrapOptionalKeys<TwilioSettings>(cfg)),
+		TE.map((cfg) => unwrapOptionalKeys<TwilioSettings>(cfg)),
 	)

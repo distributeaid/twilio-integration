@@ -55,8 +55,8 @@ export const handler = async (
 
 	const r = await pipe(
 		fetchUser(chatService)(identity),
-		TE.map(updateUserAttributes(chatService, { nick })),
-		TE.map(
+		TE.chain(updateUserAttributes(chatService, { nick })),
+		TE.chain(() =>
 			pe(
 				NickUpdated({
 					identity,

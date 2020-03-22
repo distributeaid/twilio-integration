@@ -17,7 +17,7 @@ export const addEmailToBeVerified = ({
 	pipe(
 		TE.tryCatch<ErrorInfo, string>(
 			async () => (await randomWords({ numWords: 3 })).join('-'),
-			err => {
+			(err) => {
 				console.error(
 					JSON.stringify({
 						createRandomWords: { error: err },
@@ -29,45 +29,42 @@ export const addEmailToBeVerified = ({
 				}
 			},
 		),
-		TE.map(code =>
-			pipe(
-				TE.tryCatch<ErrorInfo, string>(
-					async () => {
-						const query = {
-							TableName,
-							Item: {
-								email: {
-									S: email,
-								},
-								code: {
-									S: code,
-								},
+		TE.chain((code) =>
+			TE.tryCatch<ErrorInfo, string>(
+				async () => {
+					const query = {
+						TableName,
+						Item: {
+							email: {
+								S: email,
 							},
-							ConditionExpression: 'attribute_not_exists(email)',
-						}
-						const res = await dynamodb.send(new PutItemCommand(query))
-						console.log(JSON.stringify({ query, res }))
-						return code
-					},
-					err => {
-						if ((err as Error).name === 'ConditionalCheckFailedException') {
-							return {
-								type: ErrorType.Conflict,
-								message: (err as Error).message,
-							}
-						}
-						console.error(
-							JSON.stringify({
-								addCellToCacheIfNotExists: { error: err, TableName },
-							}),
-						)
+							code: {
+								S: code,
+							},
+						},
+						ConditionExpression: 'attribute_not_exists(email)',
+					}
+					const res = await dynamodb.send(new PutItemCommand(query))
+					console.log(JSON.stringify({ query, res }))
+					return code
+				},
+				(err) => {
+					if ((err as Error).name === 'ConditionalCheckFailedException') {
 						return {
-							type: ErrorType.InternalError,
+							type: ErrorType.Conflict,
 							message: (err as Error).message,
 						}
-					},
-				),
+					}
+					console.error(
+						JSON.stringify({
+							addCellToCacheIfNotExists: { error: err, TableName },
+						}),
+					)
+					return {
+						type: ErrorType.InternalError,
+						message: (err as Error).message,
+					}
+				},
 			),
 		),
-		TE.flatten,
 	)

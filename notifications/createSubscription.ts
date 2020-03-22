@@ -19,8 +19,8 @@ export const createSubscription = ({
 	channel: string
 	email: string
 	identity: string
-}): TE.TaskEither<ErrorInfo, void> =>
-	TE.tryCatch<ErrorInfo, void>(
+}): TE.TaskEither<ErrorInfo, boolean> =>
+	TE.tryCatch<ErrorInfo, boolean>(
 		async () => {
 			const query = {
 				TableName,
@@ -38,6 +38,7 @@ export const createSubscription = ({
 			}
 			const res = await dynamodb.send(new PutItemCommand(query))
 			console.log(JSON.stringify({ query, res }))
+			return true
 		},
 		(err) => {
 			console.error(
