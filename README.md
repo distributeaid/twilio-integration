@@ -27,6 +27,7 @@ The SendGrid API credentials need to be provided:
 
 If this is the run the first time in an account
 
+    npx cdk bootstrap
     npx cdk -a 'node dist/aws/cloudformation-sourcecode.js' deploy
 
 Deploy the integration:
