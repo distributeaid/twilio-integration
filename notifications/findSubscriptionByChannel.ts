@@ -19,7 +19,7 @@ export const findSubscriptionByChannel = ({
 		async () => {
 			const query: QueryInput = {
 				TableName,
-				KeyConditionExpression: '#channel = :channel AND #subscription > ""',
+				KeyConditionExpression: '#channel = :channel',
 				ExpressionAttributeNames: {
 					'#channel': 'channel',
 					'#identity': 'identity',
@@ -30,7 +30,7 @@ export const findSubscriptionByChannel = ({
 						S: channel,
 					},
 				},
-				ProjectionExpression: '#identity',
+				ProjectionExpression: '#identity,#subscription',
 			}
 			const res = await dynamodb.send(new QueryCommand(query))
 			console.log(JSON.stringify({ query, res }))
