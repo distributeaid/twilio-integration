@@ -85,6 +85,25 @@ Register the URL with the integration:
 When verifying tokens, the integration will look up this URL to retrieve the
 public key.
 
+### API for generating tokens for a development environment
+
+This API allows you to store the private key in the environment and generate
+tokens using a HTTP API.
+
+Deploy the API:
+
+    npx cdk -a 'node dist/aws/cloudformation-dev-extras.js' deploy
+
+Configure it:
+
+    PRIVATE_KEY=`cat ecdsa-p256-${KEY_ID}-private.pem`
+    aws ssm put-parameter --name /${STACK_NAME:-twilio-integration-dev}-dev-extras/chat-development/privateKey --type String --value "${PRIVATE_KEY}"
+    aws ssm put-parameter --name /${STACK_NAME:-twilio-integration-dev}-dev-extras/chat-development/keyId --type String --value ${KEY_ID}
+
+You can now generate token using the API provided by the stack:
+
+    http POST '<apiurl>/token?identity=alex&context=general,random'
+
 ## Continuous Integration
 
 This project is continuously tested using a real instance.

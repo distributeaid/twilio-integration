@@ -24,7 +24,7 @@ export type TokenInfo = { identity: string; contexts: string[] }
 
 const fetchJWKS = async (url: string) =>
 	tryCatch<ErrorInfo, JWKS>(
-		async () => fetch(url).then(async res => res.json()),
+		async () => fetch(url).then(async (res) => res.json()),
 		ToErrorInfo('Fetching JWKs'),
 	)()
 
@@ -59,7 +59,7 @@ export const verifyToken = ({
 		}
 
 		if (!jwks[kid]) {
-			jwks[kid] = fetchSettings().then(async maybeSettings => {
+			jwks[kid] = fetchSettings().then(async (maybeSettings) => {
 				if (isLeft(maybeSettings)) return maybeSettings
 				return fetchJWKS(maybeSettings.right)
 			})
