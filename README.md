@@ -6,6 +6,38 @@
 
 Integrates Twilio as a chat provider, built using AWS serverless components.
 
+## Overview
+
+> _Note:_ You can find the original description of the
+> [feature here](https://gitlab.com/distribute-aid/toolbox/-/issues/95).
+
+This project provides the chat feature for the
+[Distribute Aid toolbox](https://gitlab.com/distribute-aid/toolbox) users of the
+platform to have _context-specific_ chats, where a context for the chat is just
+identified by its name, and it's the toolbox' responsibility to provide the
+authentication tokens to the user which define the contexts the user is allowed
+to access as JWT tokens.
+
+This way the chat integration does not need to have any knowledge about toolbox
+domain concepts (e.g. groups, shipments) and only needs to ensure that _a user_
+has access to the chat rooms for the _contexts_ they are authorized for.
+
+![Architecture](./docs/architecture.jpg)
+
+_Fig. Architecture ([Source](https://miro.com/app/board/o9J_kvzYUeA=/))_
+
+The JavaScript code that is responsible for rendering the chat window on the
+page is loaded from an external source (this is basically a
+microfrontend-approach where the chat microservice is able to independently
+provide and update the UI). The code is minified and hosted on S3.
+
+The chat is then instantiated with the context and the JWT, which is sent to
+AppSync (which provides a GraphQL API for the Twilio integration and returns the
+Twilio Access token to the UI), which then connects to the Twilio Chat API via
+Websockets.
+
+All request happen entirely outside of the toolbox.
+
 ## Deploy
 
 Make sure your have AWS credentials in your environment.
