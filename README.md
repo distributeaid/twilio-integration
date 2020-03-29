@@ -38,6 +38,10 @@ Websockets.
 
 All request happen entirely outside of the toolbox.
 
+## Architecture decision records (ADRs)
+
+see [./docs/ADRs](./docs/ADRs).
+
 ## Deploy
 
 Make sure your have AWS credentials in your environment.
