@@ -86,7 +86,6 @@ jobs:
         if: failure()
         run: node dist/scripts/logs.js
       - name: Semantic release
-        if: github.ref == 'saga'
         run: |
           npm i --no-save semantic-release
           npx semantic-release
