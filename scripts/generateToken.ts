@@ -62,7 +62,7 @@ console.log(
 )
 console.log('')
 
-jwt.verify(token, cert, (err: jwt.VerifyErrors) => {
+jwt.verify(token, cert, (err: jwt.VerifyErrors | null) => {
 	if (err) {
 		console.error(chalk.red(err))
 		process.exit(1)
