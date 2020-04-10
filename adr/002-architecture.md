@@ -1,3 +1,5 @@
+# Architecture
+
 Chat should only be allowed for authenticated users (those who have a user
 account on the platform).
 

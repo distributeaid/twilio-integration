@@ -40,7 +40,7 @@ All request happen entirely outside of the toolbox.
 
 ## Architecture decision records (ADRs)
 
-see [./docs/ADRs](./docs/ADRs).
+see [./adr](./adr).
 
 ## Deploy
 
