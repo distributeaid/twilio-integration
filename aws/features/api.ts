@@ -64,7 +64,7 @@ export class ApiFeature extends Construct {
 		this.schema = new CfnGraphQLSchema(this, 'Schema', {
 			apiId: this.api.attrApiId,
 			definition: readFileSync(
-				path.resolve(__dirname, '..', '..', '..', 'appsync', 'schema.graphql'),
+				path.resolve(process.cwd(), 'appsync', 'schema.graphql'),
 				'utf-8',
 			),
 		})
