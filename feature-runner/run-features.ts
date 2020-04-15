@@ -96,6 +96,7 @@ program
 					new ConsoleReporter({
 						printResults,
 						printProgress: progress,
+						printSummary: true,
 					}),
 				],
 			})
