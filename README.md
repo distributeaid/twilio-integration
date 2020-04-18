@@ -44,6 +44,11 @@ see [./adr](./adr).
 
 ## Deploy
 
+> ℹ️ These instructions apply to Unix-based development environments; Linux and
+> Mac users should be fine. Windows users could look into setting up their
+> development environment using
+> [WSL2](https://docs.microsoft.com/en-us/windows/wsl/wsl2-index).
+
 Make sure your have AWS credentials in your environment.
 
     npm ci
