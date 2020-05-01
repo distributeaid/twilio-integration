@@ -4,7 +4,9 @@
   "description": "Integrates Twilio as a chat provider, built using AWS serverless components.",
   "scripts": {
     "test": "jest",
-    "test:e2e": "node dist/feature-runner/run-features.js ./features --print-results --progress"
+    "test:e2e": "node dist/feature-runner/run-features.js ./features --print-results --progress",
+    "snyk-protect": "snyk protect",
+    "prepare": "npm run snyk-protect"
   },
   "repository": {
     "type": "git",
@@ -74,7 +76,8 @@
     "node-fetch": "^2.6.0",
     "parse-multipart-data": "^1.0.0",
     "twilio": "^3.42.1",
-    "uuid": "^7.0.3"
+    "uuid": "^7.0.3",
+    "snyk": "^1.316.1"
   },
   "jest": {
     "testURL": "http://localhost",
@@ -108,5 +111,6 @@
       "@semantic-release/release-notes-generator",
       "@semantic-release/github"
     ]
-  }
+  },
+  "snyk": true
 }
