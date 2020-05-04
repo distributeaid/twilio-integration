@@ -6,7 +6,8 @@
     "test": "jest",
     "test:e2e": "node dist/feature-runner/run-features.js ./features --print-results --progress",
     "snyk-protect": "snyk protect",
-    "prepare": "npm run snyk-protect"
+    "prepare": "npm run snyk-protect",
+    "postinstall": "check-node-version --package"
   },
   "repository": {
     "type": "git",
@@ -44,6 +45,7 @@
     "@types/uuid": "^7.0.2",
     "aws-cdk": "^1.32.2",
     "chalk": "^4.0.0",
+    "check-node-version": "^4.0.3",
     "commander": "^5.0.0",
     "husky": "^4.2.5",
     "jest": "^25.3.0",
@@ -112,5 +114,9 @@
       "@semantic-release/github"
     ]
   },
-  "snyk": true
+  "snyk": true,
+  "engines": {
+    "node": ">=14.0.0",
+    "npm": ">=6.0.0"
+  }
 }
