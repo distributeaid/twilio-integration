@@ -79,7 +79,7 @@
     "parse-multipart-data": "^1.0.0",
     "twilio": "^3.42.1",
     "uuid": "^7.0.3",
-    "snyk": "^1.319.2"
+    "snyk": "^1.320.2"
   },
   "jest": {
     "testURL": "http://localhost",
