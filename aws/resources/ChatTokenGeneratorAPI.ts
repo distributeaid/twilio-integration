@@ -60,7 +60,8 @@ export class ChatTokenGeneratorAPI extends CDK.Construct {
 		// This is the API Gateway, AWS CDK automatically creates a prod stage and deployment
 		this.api = new ApiGateway.RestApi(this, 'api', {
 			restApiName: 'Chat Token Generator',
-			description: 'API Gateway to generate chat tokens (development only) ',
+			description: 'API Gateway to generate chat tokens (development only)',
+			endpointTypes: [ApiGateway.EndpointType.REGIONAL],
 		})
 		const proxyResource = this.api.root.addResource('{proxy+}')
 		proxyResource.addMethod('ANY', new ApiGateway.LambdaIntegration(lambda))

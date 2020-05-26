@@ -69,6 +69,7 @@ export class SendGridReceiver extends CDK.Construct {
 		this.api = new ApiGateway.RestApi(this, 'api', {
 			restApiName: 'Webhook Receiver API',
 			description: 'API Gateway to test webhook deliveries',
+			endpointTypes: [ApiGateway.EndpointType.REGIONAL],
 		})
 		const proxyResource = this.api.root.addResource('{proxy+}')
 		proxyResource.addMethod('ANY', new ApiGateway.LambdaIntegration(lambda))
