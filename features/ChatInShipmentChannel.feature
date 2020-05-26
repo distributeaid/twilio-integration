@@ -7,8 +7,8 @@ Feature: Chat in a shipment channel
 
     Given the GQL endpoint is "{graqphQLEndpoint}"
     And the GQL queries are authenticated with the API key "{graqphQLApiApiKey}"
-    And I store a UUIDv4 as "chatUserId"
-    And I store a UUIDv4 as "shipmentId"
+    And I have a random UUID in "chatUserId"
+    And I have a random UUID in "shipmentId"
 
   Scenario: Create chat token for a shipment using the JWT provided by the toolbox
 

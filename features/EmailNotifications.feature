@@ -10,9 +10,9 @@ Feature: Email notifications
         Given the GQL endpoint is "{graqphQLEndpoint}"
         And the GQL queries are authenticated with the API key "{graqphQLApiApiKey}"
         And the domain name for receiving emails is stored in "testEmailDomain"
-        And I store a UUIDv4 as "chatUserId"
-        And I store a UUIDv4 as "otherChatUserId"
-        And I store a UUIDv4 as "shipmentId"
+        And I have a random UUID in "chatUserId"
+        And I have a random UUID in "otherChatUserId"
+        And I have a random UUID in "shipmentId"
 
     Scenario: Join shipment chat channel and post a new message
 

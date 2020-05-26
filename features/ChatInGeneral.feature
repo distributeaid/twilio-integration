@@ -7,7 +7,7 @@ Feature: Chat in the general channel
 
     Given the GQL endpoint is "{graqphQLEndpoint}"
     And the GQL queries are authenticated with the API key "{graqphQLApiApiKey}"
-    And I store a UUIDv4 as "chatUserId"
+    And I have a random UUID in "chatUserId"
 
   Scenario: Create chat token using the JWT provided by the toolbox
 

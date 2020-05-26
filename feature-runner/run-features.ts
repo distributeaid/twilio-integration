@@ -6,6 +6,7 @@ import {
 	appSyncAfterAll,
 	appSyncBeforeAll,
 	webhookStepRunners,
+	randomStepRunners,
 } from '@coderbyheart/bdd-feature-runner-aws'
 import * as chalk from 'chalk'
 import * as program from 'commander'
@@ -14,7 +15,6 @@ import { StackConfig as TestExtrasStackConfig } from '../aws/stacks/test-extras'
 import { twilioIntegrationSteps } from './twilioIntegrationSteps'
 import * as fs from 'fs'
 import * as path from 'path'
-import { uuidHelper } from './uuidHelpers'
 import { sendGridSteps, sendGridAfterAll } from './sendGridSteps'
 import { stackName } from '../aws/stackName'
 
@@ -105,7 +105,7 @@ program
 			const { success } = await runner
 				.addStepRunners(appSyncStepRunners())
 				.addStepRunners(twilioIntegrationSteps())
-				.addStepRunners(uuidHelper())
+				.addStepRunners(randomStepRunners())
 				.addStepRunners(sendGridSteps())
 				.addStepRunners(
 					webhookStepRunners<World>({ region }),
