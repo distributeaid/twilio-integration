@@ -73,12 +73,12 @@
   "dependencies": {
     "@aws-sdk/client-dynamodb-v2-node": "0.1.0-preview.2",
     "@bifravst/random-words": "^4.2.0",
-    "fp-ts": "^2.6.1",
-    "io-ts": "^2.2.3",
+    "fp-ts": "^2.6.2",
+    "io-ts": "^2.2.4",
     "jsonwebtoken": "^8.5.1",
     "node-fetch": "^2.6.0",
     "parse-multipart-data": "^1.0.0",
-    "snyk": "^1.329.0",
+    "snyk": "^1.330.2",
     "twilio": "^3.44.0",
     "uuid": "^8.1.0"
   },
