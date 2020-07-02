@@ -78,7 +78,7 @@
     "jsonwebtoken": "^8.5.1",
     "node-fetch": "^2.6.0",
     "parse-multipart-data": "^1.0.0",
-    "snyk": "^1.348.2",
+    "snyk": "^1.349.0",
     "twilio": "^3.47.0",
     "uuid": "^8.2.0"
   },
