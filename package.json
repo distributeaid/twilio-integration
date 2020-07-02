@@ -74,7 +74,7 @@
     "@aws-sdk/client-dynamodb-v2-node": "0.1.0-preview.2",
     "@bifravst/random-words": "^4.2.0",
     "fp-ts": "^2.6.7",
-    "io-ts": "^2.2.6",
+    "io-ts": "^2.2.7",
     "jsonwebtoken": "^8.5.1",
     "node-fetch": "^2.6.0",
     "parse-multipart-data": "^1.0.0",
