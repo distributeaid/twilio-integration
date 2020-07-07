@@ -1,13 +1,14 @@
 import {
 	FeatureRunner,
-	fetchStackConfiguration,
 	ConsoleReporter,
 	appSyncStepRunners,
 	appSyncAfterAll,
 	appSyncBeforeAll,
 	webhookStepRunners,
 	randomStepRunners,
-} from '@coderbyheart/bdd-feature-runner-aws'
+} from '@bifravst/e2e-bdd-test-runner'
+import { stackOutput } from '@bifravst/cloudformation-helpers'
+import { CloudFormation } from 'aws-sdk'
 import * as chalk from 'chalk'
 import * as program from 'commander'
 import { StackConfig } from '../aws/stacks/core'
@@ -30,19 +31,19 @@ export type World = {
 	sendGridReceiverQueueURL: string
 	keyId: string
 	privateKey: string
-	webhookQueue: string
 }
 
-const region = process.env.AWS_REGION || ''
-const keyId = process.env.KEY_ID || ''
+const region = process.env.AWS_REGION ?? ''
+const keyId = process.env.KEY_ID ?? ''
 const privateKey = fs
 	.readFileSync(
 		path.join(process.cwd(), `ecdsa-p256-${keyId}-private.pem`),
 		'utf-8',
 	)
 	.toString()
-const sendGridApiKey = process.env.SENDGRID_API_KEY || ''
-const sendGridDomainName = process.env.SENDGRID_DOMAIN || ''
+const sendGridApiKey = process.env.SENDGRID_API_KEY ?? ''
+const sendGridDomainName = process.env.SENDGRID_DOMAIN ?? ''
+const so = stackOutput(new CloudFormation({ region }))
 
 program
 	.arguments('<featureDir>')
@@ -59,14 +60,8 @@ program
 			ran = true
 
 			const [stackConfig, testStackConfig] = await Promise.all([
-				fetchStackConfiguration({
-					StackName: stackName(),
-					region: process.env.AWS_REGION as string,
-				}) as Promise<StackConfig>,
-				fetchStackConfiguration({
-					StackName: stackName('test-extras'),
-					region: process.env.AWS_REGION as string,
-				}) as Promise<TestExtrasStackConfig>,
+				so<StackConfig>(stackName()),
+				so<TestExtrasStackConfig>(stackName('test-extras')),
 			])
 
 			const world: World = {
@@ -82,7 +77,6 @@ program
 				sendGridReceiverQueueURL: testStackConfig.sendGridReceiverQueueURL,
 				keyId,
 				privateKey,
-				webhookQueue: testStackConfig.sendGridReceiverQueueURL,
 			}
 
 			console.log(chalk.yellow.bold(' World:'))
@@ -108,14 +102,16 @@ program
 				.addStepRunners(randomStepRunners())
 				.addStepRunners(sendGridSteps())
 				.addStepRunners(
-					webhookStepRunners<World>({ region }),
+					webhookStepRunners({
+						region,
+						webhookQueue: testStackConfig.sendGridReceiverQueueURL,
+					}),
 				)
 				.run()
 			await appSyncAfterAll(runner)
 			await sendGridAfterAll(runner)
 			if (!success) {
 				process.exit(1)
-				return
 			}
 			process.exit()
 		},

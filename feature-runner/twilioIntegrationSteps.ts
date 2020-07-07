@@ -1,5 +1,5 @@
 import * as jwt from 'jsonwebtoken'
-import { regexGroupMatcher } from '@coderbyheart/bdd-feature-runner-aws'
+import { regexGroupMatcher } from '@bifravst/e2e-bdd-test-runner'
 import { Client } from 'twilio-chat'
 import { Channel } from 'twilio-chat/lib/channel'
 import { expect } from 'chai'

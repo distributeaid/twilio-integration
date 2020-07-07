@@ -1,9 +1,6 @@
 /*eslint @typescript-eslint/camelcase: "warn"*/
 
-import {
-	regexGroupMatcher,
-	FeatureRunner,
-} from '@coderbyheart/bdd-feature-runner-aws'
+import { regexGroupMatcher, FeatureRunner } from '@bifravst/e2e-bdd-test-runner'
 import fetch from 'node-fetch'
 import { World } from './run-features'
 import { v4 } from 'uuid'
@@ -44,7 +41,7 @@ export const sendGridSteps = () => [
 			)
 		}
 		runner.store['sendgrid:receivers'] = [
-			...(runner.store['sendgrid:receivers'] || []),
+			...(runner.store['sendgrid:receivers'] ?? []),
 			receiverId,
 		]
 		runner.store[storeName] = hostname
@@ -57,8 +54,8 @@ export const sendGridSteps = () => [
 export const sendGridAfterAll = async (runner: FeatureRunner<World>) => {
 	const { sendGridDomainName, sendGridApiKey } = runner.world
 	await Promise.all(
-		((runner.store['sendgrid:receivers'] as string[]) || []).map(
-			async receiver => {
+		((runner.store['sendgrid:receivers'] as string[]) ?? []).map(
+			async (receiver) => {
 				const res = await fetch(
 					`https://api.sendgrid.com/v3/user/webhooks/parse/settings/${createHostname(
 						sendGridDomainName,
