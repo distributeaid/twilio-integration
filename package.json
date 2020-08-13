@@ -80,7 +80,7 @@
     "jsonwebtoken": "^8.5.1",
     "node-fetch": "^2.6.0",
     "parse-multipart-data": "^1.0.0",
-    "snyk": "^1.364.0",
+    "snyk": "^1.364.2",
     "twilio": "^3.48.0",
     "uuid": "^8.2.0"
   },
