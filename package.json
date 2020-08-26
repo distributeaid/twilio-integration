@@ -35,7 +35,7 @@
     "@aws-cdk/aws-sns": "1.41.0",
     "@aws-cdk/core": "1.41.0",
     "@bifravst/cloudformation-helpers": "3.1.1",
-    "@bifravst/code-style": "8.0.0",
+    "@bifravst/code-style": "8.0.42",
     "@bifravst/e2e-bdd-test-runner": "2.0.0",
     "@bifravst/package-layered-lambdas": "3.9.0",
     "@commitlint/cli": "9.1.2",
