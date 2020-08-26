@@ -56,7 +56,7 @@
     "jest": "26.0.1",
     "prettier": "2.0.5",
     "ts-jest": "26.0.0",
-    "ts-loader": "7.0.5",
+    "ts-loader": "8.0.3",
     "twilio-chat": "3.3.7",
     "typescript": "3.9.3"
   },
