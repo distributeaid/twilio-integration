@@ -83,7 +83,7 @@
     "node-fetch": "2.6.0",
     "parse-multipart-data": "1.0.0",
     "snyk": "1.369.3",
-    "twilio": "3.48.1",
+    "twilio": "3.49.0",
     "uuid": "8.3.0"
   },
   "jest": {
