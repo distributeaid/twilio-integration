@@ -49,7 +49,7 @@
     "@types/uuid": "8.0.0",
     "aws-cdk": "1.41.0",
     "aws-sdk": "2.711.0",
-    "chalk": "4.0.0",
+    "chalk": "4.1.0",
     "check-node-version": "4.0.3",
     "commander": "5.1.0",
     "husky": "4.2.5",
