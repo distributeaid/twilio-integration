@@ -48,7 +48,7 @@
     "@types/node-fetch": "2.5.7",
     "@types/uuid": "8.3.0",
     "aws-cdk": "1.60.0",
-    "aws-sdk": "2.742.0",
+    "aws-sdk": "2.743.0",
     "chalk": "4.1.0",
     "check-node-version": "4.0.3",
     "commander": "6.1.0",
