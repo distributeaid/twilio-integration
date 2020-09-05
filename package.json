@@ -80,7 +80,7 @@
     "fp-ts": "2.8.2",
     "io-ts": "2.2.10",
     "jsonwebtoken": "8.5.1",
-    "node-fetch": "2.6.0",
+    "node-fetch": "2.6.1",
     "parse-multipart-data": "1.0.0",
     "snyk": "1.389.0",
     "twilio": "3.49.1",
